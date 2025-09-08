@@ -1,0 +1,1615 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FraudShield - Sistema Completo de Análise de Fraudes</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: #ffffff;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .shield-icon {
+            font-size: 3rem;
+            color: #4CAF50;
+            margin-bottom: 20px;
+        }
+
+        /* Auth Section */
+        .auth-section {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .user-info {
+            background: rgba(255,255,255,0.1);
+            padding: 10px 15px;
+            border-radius: 25px;
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .auth-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .auth-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .login-btn {
+            background: transparent;
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .login-btn:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .register-btn {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .register-btn:hover {
+            background: #45a049;
+        }
+
+        .logout-btn {
+            background: #f44336;
+            color: white;
+        }
+
+        .logout-btn:hover {
+            background: #da190b;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .modal h2 {
+            text-align: center;
+            margin-bottom: 25px;
+            color: #fff;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #fff;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            font-size: 16px;
+            backdrop-filter: blur(10px);
+        }
+
+        .form-group input::placeholder {
+            color: rgba(255,255,255,0.7);
+        }
+
+        .form-group input:focus {
+            outline: none;
+            background: rgba(255,255,255,0.2);
+        }
+
+        .form-submit {
+            width: 100%;
+            padding: 12px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .form-submit:hover {
+            background: #45a049;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .close:hover {
+            color: #fff;
+        }
+
+        .main-content {
+            display: flex;
+            gap: 30px;
+            margin-top: 20px;
+        }
+
+        .sidebar {
+            flex: 0 0 300px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            height: fit-content;
+        }
+
+        .content-area {
+            flex: 1;
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        .stats-section h3 {
+            margin-bottom: 20px;
+            color: #4CAF50;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+
+        .stat-value {
+            font-weight: bold;
+            color: #4CAF50;
+        }
+
+        .history-section {
+            margin-top: 30px;
+        }
+
+        .history-item {
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border-left: 4px solid #4CAF50;
+        }
+
+        .history-item.medium {
+            border-left-color: #FF9800;
+        }
+
+        .history-item.high {
+            border-left-color: #f44336;
+        }
+
+        .history-meta {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-bottom: 5px;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 30px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 5px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px 20px;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .tab.active {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-section {
+            background: rgba(255,255,255,0.05);
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            flex: 1;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #fff;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            font-size: 16px;
+        }
+
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: rgba(255,255,255,0.6);
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #4CAF50;
+            background: rgba(255,255,255,0.15);
+        }
+
+        .document-types {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .doc-type {
+            padding: 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .doc-type.selected {
+            background: #4CAF50;
+            border-color: #45a049;
+        }
+
+        .doc-type i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .results {
+            margin-top: 25px;
+            padding: 20px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            display: none;
+        }
+
+        .results.show {
+            display: block;
+        }
+
+        .risk-indicator {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .risk-low {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .risk-medium {
+            background: #FF9800;
+            color: white;
+        }
+
+        .risk-high {
+            background: #f44336;
+            color: white;
+        }
+
+        .check-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .check-item:last-child {
+            border-bottom: none;
+        }
+
+        .check-status {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-success {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .status-warning {
+            background: #FF9800;
+            color: white;
+        }
+
+        .status-error {
+            background: #f44336;
+            color: white;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top: 3px solid #4CAF50;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .file-upload {
+            border: 2px dashed rgba(255,255,255,0.3);
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .file-upload:hover {
+            border-color: #4CAF50;
+            background: rgba(76,175,80,0.1);
+        }
+
+        .file-upload.dragover {
+            border-color: #4CAF50;
+            background: rgba(76,175,80,0.2);
+        }
+
+        .error-message {
+            background: rgba(244,67,54,0.2);
+            color: #ff6b6b;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #f44336;
+        }
+
+        .success-message {
+            background: rgba(76,175,80,0.2);
+            color: #4CAF50;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #4CAF50;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                flex: none;
+            }
+            
+            .tabs {
+                flex-wrap: wrap;
+            }
+            
+            .tab {
+                flex: 1 1 calc(50% - 5px);
+                margin-bottom: 5px;
+            }
+            
+            .document-types {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .auth-section {
+                position: relative;
+                top: auto;
+                right: auto;
+                margin-bottom: 20px;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Auth Section -->
+    <div class="auth-section">
+        <div id="authButtons" class="auth-buttons">
+            <button class="auth-btn login-btn" onclick="openLoginModal()">
+                <i class="fas fa-sign-in-alt"></i> Entrar
+            </button>
+            <button class="auth-btn register-btn" onclick="openRegisterModal()">
+                <i class="fas fa-user-plus"></i> Cadastrar
+            </button>
+        </div>
+        <div id="userInfo" class="user-info" style="display: none;">
+            <i class="fas fa-user-circle"></i>
+            <span id="userName">Usuário</span>
+            <button class="auth-btn logout-btn" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i> Sair
+            </button>
+        </div>
+    </div>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('loginModal')">&times;</span>
+            <h2><i class="fas fa-sign-in-alt"></i> Entrar</h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="loginUsername">Usuário ou Email:</label>
+                    <input type="text" id="loginUsername" name="username" placeholder="Digite seu usuário ou email" required>
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Senha:</label>
+                    <input type="password" id="loginPassword" name="password" placeholder="Digite sua senha" required>
+                </div>
+                <button type="submit" class="form-submit">
+                    <i class="fas fa-sign-in-alt"></i> Entrar
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div id="registerModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('registerModal')">&times;</span>
+            <h2><i class="fas fa-user-plus"></i> Cadastrar</h2>
+            <form id="registerForm">
+                <div class="form-group">
+                    <label for="registerUsername">Nome de Usuário:</label>
+                    <input type="text" id="registerUsername" name="username" placeholder="Escolha um nome de usuário" required>
+                </div>
+                <div class="form-group">
+                    <label for="registerEmail">Email:</label>
+                    <input type="email" id="registerEmail" name="email" placeholder="Digite seu email" required>
+                </div>
+                <div class="form-group">
+                    <label for="registerFullName">Nome Completo:</label>
+                    <input type="text" id="registerFullName" name="full_name" placeholder="Digite seu nome completo">
+                </div>
+                <div class="form-group">
+                    <label for="registerPassword">Senha:</label>
+                    <input type="password" id="registerPassword" name="password" placeholder="Crie uma senha (mín. 6 caracteres)" required>
+                </div>
+                <button type="submit" class="form-submit">
+                    <i class="fas fa-user-plus"></i> Cadastrar
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <i class="fas fa-shield-alt shield-icon"></i>
+            <h1>🛡️ FraudShield</h1>
+            <p class="subtitle">Sistema completo de análise de documentos, telefones, sites, arquivos e textos para identificação de fraudes</p>
+        </div>
+
+        <div class="main-content">
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <div class="stats-section">
+                    <h3><i class="fas fa-chart-bar"></i> Estatísticas</h3>
+                    <div id="statsContent">
+                        <div class="stat-item">
+                            <span>Documentos analisados:</span>
+                            <span class="stat-value" id="documentsCount">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span>Telefones verificados:</span>
+                            <span class="stat-value" id="phonesCount">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span>Sites analisados:</span>
+                            <span class="stat-value" id="sitesCount">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span>Arquivos verificados:</span>
+                            <span class="stat-value" id="filesCount">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span>Textos analisados:</span>
+                            <span class="stat-value" id="textsCount">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="history-section" id="historySection" style="display: none;">
+                    <h3><i class="fas fa-history"></i> Histórico Recente</h3>
+                    <div id="historyContent">
+                        <!-- Histórico será carregado aqui -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content Area -->
+            <div class="content-area">
+                <div class="tabs">
+                    <div class="tab active" onclick="switchTab('documents')">
+                        <i class="fas fa-id-card"></i> Documentos
+                    </div>
+                    <div class="tab" onclick="switchTab('phones')">
+                        <i class="fas fa-phone"></i> Telefones
+                    </div>
+                    <div class="tab" onclick="switchTab('sites')">
+                        <i class="fas fa-globe"></i> Sites
+                    </div>
+                    <div class="tab" onclick="switchTab('files')">
+                        <i class="fas fa-file"></i> Arquivos
+                    </div>
+                    <div class="tab" onclick="switchTab('texts')">
+                        <i class="fas fa-comment"></i> Textos
+                    </div>
+                </div>
+
+                <!-- Documents Tab -->
+                <div id="documents" class="tab-content active">
+                    <div class="form-section">
+                        <h3>Selecione o tipo de documento</h3>
+                        <div class="document-types">
+                            <div class="doc-type selected" data-type="cpf">
+                                <i class="fas fa-user"></i>
+                                CPF
+                            </div>
+                            <div class="doc-type" data-type="cnpj">
+                                <i class="fas fa-building"></i>
+                                CNPJ
+                            </div>
+                            <div class="doc-type" data-type="rg">
+                                <i class="fas fa-id-card"></i>
+                                RG
+                            </div>
+                            <div class="doc-type" data-type="cnh">
+                                <i class="fas fa-car"></i>
+                                CNH
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="documentNumber">Número do documento</label>
+                            <input type="text" id="documentNumber" placeholder="Digite o número do documento">
+                        </div>
+                        
+                        <button class="btn" onclick="checkDocument()">
+                            <i class="fas fa-search"></i> Verificar Documento
+                        </button>
+                    </div>
+                    
+                    <div id="documentResults" class="results">
+                        <div class="loading" id="documentLoading">
+                            <div class="spinner"></div>
+                            <p>Validando formato e consultando bases de dados...</p>
+                        </div>
+                        <div id="documentResultContent"></div>
+                    </div>
+                </div>
+
+                <!-- Phones Tab -->
+                <div id="phones" class="tab-content">
+                    <div class="form-section">
+                        <div class="form-group">
+                            <label for="phoneNumber">Número do telefone</label>
+                            <input type="text" id="phoneNumber" placeholder="(11) 99999-9999">
+                        </div>
+                        
+                        <button class="btn" onclick="checkPhone()">
+                            <i class="fas fa-search"></i> Verificar Telefone
+                        </button>
+                    </div>
+                    
+                    <div id="phoneResults" class="results">
+                        <div class="loading" id="phoneLoading">
+                            <div class="spinner"></div>
+                            <p>Verificando operadora e consultando bases de spam...</p>
+                        </div>
+                        <div id="phoneResultContent"></div>
+                    </div>
+                </div>
+
+                <!-- Sites Tab -->
+                <div id="sites" class="tab-content">
+                    <div class="form-section">
+                        <div class="form-group">
+                            <label for="siteUrl">URL do site</label>
+                            <input type="text" id="siteUrl" placeholder="https://exemplo.com">
+                        </div>
+                        
+                        <button class="btn" onclick="checkSite()">
+                            <i class="fas fa-search"></i> Verificar Site
+                        </button>
+                    </div>
+                    
+                    <div id="siteResults" class="results">
+                        <div class="loading" id="siteLoading">
+                            <div class="spinner"></div>
+                            <p>Verificando com Google Safe Browsing e outras bases...</p>
+                        </div>
+                        <div id="siteResultContent"></div>
+                    </div>
+                </div>
+
+                <!-- Files Tab -->
+                <div id="files" class="tab-content">
+                    <div class="form-section">
+                        <div class="form-group">
+                            <label>Selecione o arquivo para análise</label>
+                            <div class="file-upload" onclick="document.getElementById('fileInput').click()">
+                                <i class="fas fa-cloud-upload-alt" style="font-size: 3rem; margin-bottom: 15px; color: #4CAF50;"></i>
+                                <p>Clique aqui ou arraste um arquivo</p>
+                                <p style="font-size: 0.9rem; opacity: 0.7;">Formatos suportados: PDF, DOC, TXT, JPG, PNG, ZIP</p>
+                            </div>
+                            <input type="file" id="fileInput" style="display: none;" onchange="handleFileSelect(this)">
+                        </div>
+                        
+                        <button class="btn" onclick="checkFile()" id="fileCheckBtn" disabled>
+                            <i class="fas fa-search"></i> Verificar Arquivo
+                        </button>
+                    </div>
+                    
+                    <div id="fileResults" class="results">
+                        <div class="loading" id="fileLoading">
+                            <div class="spinner"></div>
+                            <p>Analisando arquivo com múltiplos antivírus...</p>
+                        </div>
+                        <div id="fileResultContent"></div>
+                    </div>
+                </div>
+
+                <!-- Texts Tab -->
+                <div id="texts" class="tab-content">
+                    <div class="form-section">
+                        <div class="form-group">
+                            <label for="textContent">Texto para análise</label>
+                            <textarea id="textContent" rows="6" placeholder="Cole aqui o texto que deseja analisar (mensagem, email, etc.)"></textarea>
+                        </div>
+                        
+                        <button class="btn" onclick="checkText()">
+                            <i class="fas fa-search"></i> Analisar Texto
+                        </button>
+                    </div>
+                    
+                    <div id="textResults" class="results">
+                        <div class="loading" id="textLoading">
+                            <div class="spinner"></div>
+                            <p>Analisando conteúdo com algoritmos de NLP...</p>
+                        </div>
+                        <div id="textResultContent"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentUser = null;
+        let authToken = null;
+        let selectedDocType = 'cpf';
+        let selectedFile = null;
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuthStatus();
+            loadStats();
+            setupEventListeners();
+        });
+
+        // Auth functions
+        function checkAuthStatus() {
+            const token = localStorage.getItem('authToken');
+            if (token) {
+                authToken = token;
+                verifyToken(token);
+            }
+        }
+
+        function verifyToken(token) {
+            fetch('/api/auth/verify-token', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    currentUser = data.user;
+                    updateAuthUI();
+                    loadUserStats();
+                    loadUserHistory();
+                } else {
+                    logout();
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao verificar token:', error);
+                logout();
+            });
+        }
+
+        function updateAuthUI() {
+            const authButtons = document.getElementById('authButtons');
+            const userInfo = document.getElementById('userInfo');
+            const historySection = document.getElementById('historySection');
+
+            if (currentUser) {
+                authButtons.style.display = 'none';
+                userInfo.style.display = 'flex';
+                historySection.style.display = 'block';
+                document.getElementById('userName').textContent = currentUser.username;
+            } else {
+                authButtons.style.display = 'flex';
+                userInfo.style.display = 'none';
+                historySection.style.display = 'none';
+            }
+        }
+
+        function openLoginModal() {
+            document.getElementById('loginModal').style.display = 'block';
+        }
+
+        function openRegisterModal() {
+            document.getElementById('registerModal').style.display = 'block';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        function logout() {
+            currentUser = null;
+            authToken = null;
+            localStorage.removeItem('authToken');
+            updateAuthUI();
+            loadStats(); // Reload default stats
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Login form
+            document.getElementById('loginForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const loginData = {
+                    username: formData.get('username'),
+                    password: formData.get('password')
+                };
+
+                fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(loginData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        currentUser = data.user;
+                        authToken = data.access_token;
+                        localStorage.setItem('authToken', authToken);
+                        updateAuthUI();
+                        loadUserStats();
+                        loadUserHistory();
+                        closeModal('loginModal');
+                        showMessage('Login realizado com sucesso!', 'success');
+                    } else {
+                        showMessage(data.message || 'Erro no login', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro no login:', error);
+                    showMessage('Erro interno do servidor', 'error');
+                });
+            });
+
+            // Register form
+            document.getElementById('registerForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const registerData = {
+                    username: formData.get('username'),
+                    email: formData.get('email'),
+                    full_name: formData.get('full_name'),
+                    password: formData.get('password')
+                };
+
+                fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(registerData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        currentUser = data.user;
+                        authToken = data.access_token;
+                        localStorage.setItem('authToken', authToken);
+                        updateAuthUI();
+                        loadUserStats();
+                        closeModal('registerModal');
+                        showMessage('Cadastro realizado com sucesso!', 'success');
+                    } else {
+                        showMessage(data.message || 'Erro no cadastro', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Erro no cadastro:', error);
+                    showMessage('Erro interno do servidor', 'error');
+                });
+            });
+
+            // Document type selection
+            document.querySelectorAll('.doc-type').forEach(type => {
+                type.addEventListener('click', function() {
+                    document.querySelectorAll('.doc-type').forEach(t => t.classList.remove('selected'));
+                    this.classList.add('selected');
+                    selectedDocType = this.dataset.type;
+                });
+            });
+
+            // File upload
+            const fileUpload = document.querySelector('.file-upload');
+            fileUpload.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                this.classList.add('dragover');
+            });
+
+            fileUpload.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                this.classList.remove('dragover');
+            });
+
+            fileUpload.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    handleFileSelect({files: files});
+                }
+            });
+
+            // Close modals when clicking outside
+            window.addEventListener('click', function(e) {
+                if (e.target.classList.contains('modal')) {
+                    e.target.style.display = 'none';
+                }
+            });
+        }
+
+        // Tab switching
+        function switchTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+        }
+
+        // Load stats
+        function loadStats() {
+            if (currentUser && authToken) {
+                loadUserStats();
+            } else {
+                // Load default stats from localStorage
+                const stats = {
+                    documents_checked: parseInt(localStorage.getItem('documentsCount') || '0'),
+                    phones_checked: parseInt(localStorage.getItem('phonesCount') || '0'),
+                    urls_checked: parseInt(localStorage.getItem('sitesCount') || '0'),
+                    files_checked: parseInt(localStorage.getItem('filesCount') || '0'),
+                    texts_checked: parseInt(localStorage.getItem('textsCount') || '0')
+                };
+                updateStatsDisplay(stats);
+            }
+        }
+
+        function loadUserStats() {
+            if (!authToken) return;
+
+            fetch('/api/stats', {
+                headers: {
+                    'Authorization': `Bearer ${authToken}`
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    updateStatsDisplay(data.stats);
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao carregar estatísticas:', error);
+            });
+        }
+
+        function updateStatsDisplay(stats) {
+            document.getElementById('documentsCount').textContent = stats.documents_checked || 0;
+            document.getElementById('phonesCount').textContent = stats.phones_checked || 0;
+            document.getElementById('sitesCount').textContent = stats.urls_checked || 0;
+            document.getElementById('filesCount').textContent = stats.files_checked || 0;
+            document.getElementById('textsCount').textContent = stats.texts_checked || 0;
+        }
+
+        function loadUserHistory() {
+            if (!authToken) return;
+
+            fetch('/api/history?per_page=5', {
+                headers: {
+                    'Authorization': `Bearer ${authToken}`
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    displayHistory(data.history);
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao carregar histórico:', error);
+            });
+        }
+
+        function displayHistory(history) {
+            const historyContent = document.getElementById('historyContent');
+            
+            if (history.length === 0) {
+                historyContent.innerHTML = '<p style="opacity: 0.7;">Nenhuma pesquisa realizada ainda.</p>';
+                return;
+            }
+
+            historyContent.innerHTML = history.map(item => {
+                const date = new Date(item.timestamp).toLocaleString('pt-BR');
+                const typeNames = {
+                    'document': 'Documento',
+                    'phone': 'Telefone',
+                    'url': 'Site',
+                    'file': 'Arquivo',
+                    'text': 'Texto'
+                };
+                
+                return `
+                    <div class="history-item ${item.risk_level}">
+                        <div class="history-meta">${typeNames[item.search_type]} • ${date}</div>
+                        <div>Risco: <span class="risk-indicator risk-${item.risk_level}">${item.risk_level}</span></div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Check functions
+        function checkDocument() {
+            const documentNumber = document.getElementById('documentNumber').value.trim();
+            
+            if (!documentNumber) {
+                showMessage('Por favor, digite o número do documento', 'error');
+                return;
+            }
+
+            showResults('document');
+            
+            const requestData = {
+                document: documentNumber,
+                type: selectedDocType
+            };
+
+            const headers = {
+                'Content-Type': 'application/json'
+            };
+
+            if (authToken) {
+                headers['Authorization'] = `Bearer ${authToken}`;
+            }
+
+            fetch('/api/check-document', {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify(requestData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                displayDocumentResults(data);
+                updateLocalStats('documents');
+                if (currentUser) {
+                    loadUserStats();
+                    loadUserHistory();
+                }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                showMessage('Erro ao verificar documento', 'error');
+                hideResults('document');
+            });
+        }
+
+        function checkPhone() {
+            const phoneNumber = document.getElementById('phoneNumber').value.trim();
+            
+            if (!phoneNumber) {
+                showMessage('Por favor, digite o número do telefone', 'error');
+                return;
+            }
+
+            showResults('phone');
+            
+            const headers = {
+                'Content-Type': 'application/json'
+            };
+
+            if (authToken) {
+                headers['Authorization'] = `Bearer ${authToken}`;
+            }
+
+            fetch('/api/check-phone', {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify({ phone: phoneNumber })
+            })
+            .then(response => response.json())
+            .then(data => {
+                displayPhoneResults(data);
+                updateLocalStats('phones');
+                if (currentUser) {
+                    loadUserStats();
+                    loadUserHistory();
+                }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                showMessage('Erro ao verificar telefone', 'error');
+                hideResults('phone');
+            });
+        }
+
+        function checkSite() {
+            const siteUrl = document.getElementById('siteUrl').value.trim();
+            
+            if (!siteUrl) {
+                showMessage('Por favor, digite a URL do site', 'error');
+                return;
+            }
+
+            showResults('site');
+            
+            const headers = {
+                'Content-Type': 'application/json'
+            };
+
+            if (authToken) {
+                headers['Authorization'] = `Bearer ${authToken}`;
+            }
+
+            fetch('/api/check-url', {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify({ url: siteUrl })
+            })
+            .then(response => response.json())
+            .then(data => {
+                displaySiteResults(data);
+                updateLocalStats('sites');
+                if (currentUser) {
+                    loadUserStats();
+                    loadUserHistory();
+                }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                showMessage('Erro ao verificar site', 'error');
+                hideResults('site');
+            });
+        }
+
+        function checkText() {
+            const textContent = document.getElementById('textContent').value.trim();
+            
+            if (!textContent) {
+                showMessage('Por favor, digite o texto para análise', 'error');
+                return;
+            }
+
+            showResults('text');
+            
+            const headers = {
+                'Content-Type': 'application/json'
+            };
+
+            if (authToken) {
+                headers['Authorization'] = `Bearer ${authToken}`;
+            }
+
+            fetch('/api/check-text', {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify({ text: textContent })
+            })
+            .then(response => response.json())
+            .then(data => {
+                displayTextResults(data);
+                updateLocalStats('texts');
+                if (currentUser) {
+                    loadUserStats();
+                    loadUserHistory();
+                }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                showMessage('Erro ao analisar texto', 'error');
+                hideResults('text');
+            });
+        }
+
+        function handleFileSelect(input) {
+            const file = input.files[0];
+            if (file) {
+                selectedFile = file;
+                document.getElementById('fileCheckBtn').disabled = false;
+                
+                // Update file upload display
+                const fileUpload = document.querySelector('.file-upload');
+                fileUpload.innerHTML = `
+                    <i class="fas fa-file" style="font-size: 2rem; margin-bottom: 10px; color: #4CAF50;"></i>
+                    <p><strong>${file.name}</strong></p>
+                    <p style="font-size: 0.9rem; opacity: 0.7;">Tamanho: ${(file.size / 1024).toFixed(1)} KB</p>
+                `;
+            }
+        }
+
+        function checkFile() {
+            if (!selectedFile) {
+                showMessage('Por favor, selecione um arquivo', 'error');
+                return;
+            }
+
+            showResults('file');
+            
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+
+            const headers = {};
+            if (authToken) {
+                headers['Authorization'] = `Bearer ${authToken}`;
+            }
+
+            fetch('/api/check-file', {
+                method: 'POST',
+                headers: headers,
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                displayFileResults(data);
+                updateLocalStats('files');
+                if (currentUser) {
+                    loadUserStats();
+                    loadUserHistory();
+                }
+            })
+            .catch(error => {
+                console.error('Erro:', error);
+                showMessage('Erro ao verificar arquivo', 'error');
+                hideResults('file');
+            });
+        }
+
+        // Display results functions
+        function displayDocumentResults(data) {
+            const content = document.getElementById('documentResultContent');
+            
+            if (data.error) {
+                content.innerHTML = `<div class="error-message">${data.error}</div>`;
+                hideResults('document');
+                return;
+            }
+
+            const riskClass = `risk-${data.risk_level}`;
+            const riskText = data.risk_level === 'low' ? 'BAIXO' : 
+                           data.risk_level === 'medium' ? 'MÉDIO' : 'ALTO';
+
+            let checksHtml = '';
+            if (data.checks) {
+                checksHtml = data.checks.map(check => `
+                    <div class="check-item">
+                        <div>
+                            <strong>${check.name}</strong><br>
+                            <span style="opacity: 0.8;">${check.message}</span>
+                        </div>
+                        <span class="check-status status-${check.status}">${check.status.toUpperCase()}</span>
+                    </div>
+                `).join('');
+            }
+
+            content.innerHTML = `
+                <h3>Resultado da Análise</h3>
+                <div style="margin-bottom: 20px;">
+                    <strong>Documento:</strong> ${data.document || data.document}<br>
+                    <strong>Tipo:</strong> ${(data.type || selectedDocType).toUpperCase()}<br>
+                    <strong>Nível de Risco:</strong> <span class="risk-indicator ${riskClass}">${riskText}</span>
+                    ${data.holder_name ? `<br><strong>Titular:</strong> ${data.holder_name}` : ''}
+                </div>
+                <div class="checks-list">
+                    ${checksHtml}
+                </div>
+            `;
+            
+            hideLoading('document');
+        }
+
+        function displayPhoneResults(data) {
+            const content = document.getElementById('phoneResultContent');
+            
+            if (data.error) {
+                content.innerHTML = `<div class="error-message">${data.error}</div>`;
+                hideResults('phone');
+                return;
+            }
+
+            const riskClass = `risk-${data.risk_level}`;
+            const riskText = data.risk_level === 'low' ? 'BAIXO' : 
+                           data.risk_level === 'medium' ? 'MÉDIO' : 'ALTO';
+
+            let checksHtml = '';
+            if (data.checks) {
+                checksHtml = data.checks.map(check => `
+                    <div class="check-item">
+                        <div>
+                            <strong>${check.name}</strong><br>
+                            <span style="opacity: 0.8;">${check.message}</span>
+                        </div>
+                        <span class="check-status status-${check.status}">${check.status.toUpperCase()}</span>
+                    </div>
+                `).join('');
+            }
+
+            content.innerHTML = `
+                <h3>Resultado da Análise</h3>
+                <div style="margin-bottom: 20px;">
+                    <strong>Telefone:</strong> ${data.phone}<br>
+                    <strong>Nível de Risco:</strong> <span class="risk-indicator ${riskClass}">${riskText}</span>
+                    ${data.operator ? `<br><strong>Operadora:</strong> ${data.operator}` : ''}
+                    ${data.spam_reports !== undefined ? `<br><strong>Reports de Spam:</strong> ${data.spam_reports}` : ''}
+                </div>
+                <div class="checks-list">
+                    ${checksHtml}
+                </div>
+            `;
+            
+            hideLoading('phone');
+        }
+
+        function displaySiteResults(data) {
+            const content = document.getElementById('siteResultContent');
+            
+            if (data.error) {
+                content.innerHTML = `<div class="error-message">${data.error}</div>`;
+                hideResults('site');
+                return;
+            }
+
+            const riskClass = `risk-${data.risk_level}`;
+            const riskText = data.risk_level === 'low' ? 'BAIXO' : 
+                           data.risk_level === 'medium' ? 'MÉDIO' : 'ALTO';
+
+            let checksHtml = '';
+            if (data.checks) {
+                checksHtml = data.checks.map(check => `
+                    <div class="check-item">
+                        <div>
+                            <strong>${check.name}</strong><br>
+                            <span style="opacity: 0.8;">${check.message}</span>
+                        </div>
+                        <span class="check-status status-${check.status}">${check.status.toUpperCase()}</span>
+                    </div>
+                `).join('');
+            }
+
+            content.innerHTML = `
+                <h3>Resultado da Análise</h3>
+                <div style="margin-bottom: 20px;">
+                    <strong>URL:</strong> ${data.url}<br>
+                    <strong>Nível de Risco:</strong> <span class="risk-indicator ${riskClass}">${riskText}</span>
+                    ${data.threats && data.threats.length > 0 ? `<br><strong>Ameaças:</strong> ${data.threats.join(', ')}` : ''}
+                </div>
+                <div class="checks-list">
+                    ${checksHtml}
+                </div>
+            `;
+            
+            hideLoading('site');
+        }
+
+        function displayTextResults(data) {
+            const content = document.getElementById('textResultContent');
+            
+            if (data.error) {
+                content.innerHTML = `<div class="error-message">${data.error}</div>`;
+                hideResults('text');
+                return;
+            }
+
+            const riskClass = `risk-${data.risk_level}`;
+            const riskText = data.risk_level === 'low' || data.risk_level === 'safe' ? 'BAIXO' : 
+                           data.risk_level === 'medium' || data.risk_level === 'warning' ? 'MÉDIO' : 'ALTO';
+
+            let checksHtml = '';
+            if (data.checks) {
+                checksHtml = data.checks.map(check => `
+                    <div class="check-item">
+                        <div>
+                            <strong>${check.name}</strong><br>
+                            <span style="opacity: 0.8;">${check.message}</span>
+                        </div>
+                        <span class="check-status status-${check.status}">${check.status.toUpperCase()}</span>
+                    </div>
+                `).join('');
+            }
+
+            content.innerHTML = `
+                <h3>Resultado da Análise</h3>
+                <div style="margin-bottom: 20px;">
+                    <strong>Nível de Risco:</strong> <span class="risk-indicator ${riskClass}">${riskText}</span>
+                    ${data.risk_score !== undefined ? `<br><strong>Pontuação:</strong> ${data.risk_score}/100` : ''}
+                    ${data.suspicious_keywords && data.suspicious_keywords.length > 0 ? 
+                        `<br><strong>Palavras Suspeitas:</strong> ${data.suspicious_keywords.join(', ')}` : ''}
+                </div>
+                <div class="checks-list">
+                    ${checksHtml}
+                </div>
+            `;
+            
+            hideLoading('text');
+        }
+
+        function displayFileResults(data) {
+            const content = document.getElementById('fileResultContent');
+            
+            if (data.error) {
+                content.innerHTML = `<div class="error-message">${data.error}</div>`;
+                hideResults('file');
+                return;
+            }
+
+            const riskClass = `risk-${data.risk_level}`;
+            const riskText = data.risk_level === 'low' ? 'BAIXO' : 
+                           data.risk_level === 'medium' ? 'MÉDIO' : 'ALTO';
+
+            let checksHtml = '';
+            if (data.checks) {
+                checksHtml = data.checks.map(check => `
+                    <div class="check-item">
+                        <div>
+                            <strong>${check.name}</strong><br>
+                            <span style="opacity: 0.8;">${check.message}</span>
+                        </div>
+                        <span class="check-status status-${check.status}">${check.status.toUpperCase()}</span>
+                    </div>
+                `).join('');
+            }
+
+            content.innerHTML = `
+                <h3>Resultado da Análise</h3>
+                <div style="margin-bottom: 20px;">
+                    <strong>Arquivo:</strong> ${data.filename}<br>
+                    <strong>Tamanho:</strong> ${(data.size / 1024).toFixed(1)} KB<br>
+                    <strong>Nível de Risco:</strong> <span class="risk-indicator ${riskClass}">${riskText}</span>
+                    ${data.virus_detections !== undefined ? `<br><strong>Detecções de Vírus:</strong> ${data.virus_detections}` : ''}
+                </div>
+                <div class="checks-list">
+                    ${checksHtml}
+                </div>
+            `;
+            
+            hideLoading('file');
+        }
+
+        // Utility functions
+        function showResults(type) {
+            const results = document.getElementById(`${type}Results`);
+            const loading = document.getElementById(`${type}Loading`);
+            const content = document.getElementById(`${type}ResultContent`);
+            
+            results.classList.add('show');
+            loading.style.display = 'block';
+            content.style.display = 'none';
+        }
+
+        function hideResults(type) {
+            const results = document.getElementById(`${type}Results`);
+            results.classList.remove('show');
+        }
+
+        function hideLoading(type) {
+            const loading = document.getElementById(`${type}Loading`);
+            const content = document.getElementById(`${type}ResultContent`);
+            
+            loading.style.display = 'none';
+            content.style.display = 'block';
+        }
+
+        function updateLocalStats(type) {
+            if (!currentUser) {
+                const key = `${type}Count`;
+                const current = parseInt(localStorage.getItem(key) || '0');
+                localStorage.setItem(key, (current + 1).toString());
+                loadStats();
+            }
+        }
+
+        function showMessage(message, type) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `${type}-message`;
+            messageDiv.textContent = message;
+            
+            // Insert at the top of the container
+            const container = document.querySelector('.container');
+            container.insertBefore(messageDiv, container.firstChild);
+            
+            // Remove after 5 seconds
+            setTimeout(() => {
+                messageDiv.remove();
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
+
