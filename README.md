@@ -1,6 +1,6 @@
 FraudShield - Kit Inicial de Detecção de Fraudes (MVP Completo)
 FraudShield Starter Kit é uma aplicação web completa e funcional, construída em um único arquivo HTML, projetada para ser a base de um poderoso sistema de detecção de fraudes. Este ativo digital é ideal para empreendedores que desejam validar rapidamente uma ideia de negócio (Micro-SaaS) ou para desenvolvedores que procuram um ponto de partida robusto para um projeto de segurança.
-Veja a demonstração ao vivo: [Link para a demo na Vercel será adicionado aqui]
+Veja a demonstração ao vivo: [[Link para a demo na Vercel será adicionado aqui]](https://fraudshield-starter-kit-git-main-dineilton-s-projects.vercel.app)
 ✨ Funcionalidades Implementadas
 Este não é apenas um layout. É uma aplicação 100% funcional que roda inteiramente no navegador, oferecendo uma experiência de usuário rica e interativa.
 ✅ Sistema de Autenticação Completo: Fluxo de Login e Cadastro de usuários totalmente funcional.
