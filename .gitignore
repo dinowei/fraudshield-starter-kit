@@ -1,0 +1,18 @@
+# Arquivos de ambiente - NUNCA enviar para o repositório!
+.env
+*.env.local
+
+# Dependências do Node.js (pasta que contém pacotes de terceiros)
+node_modules/
+
+# Arquivos de build e produção
+dist/
+build/
+
+# Logs de erro e debug
+*.log
+npm-debug.log*
+
+# Arquivos gerados pelo sistema operacional
+.DS_Store
+Thumbs.db
