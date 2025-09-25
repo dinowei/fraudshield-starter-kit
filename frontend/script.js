@@ -3,10 +3,13 @@ let currentUser = null;
 let authToken = null;
 let selectedFile = null;
 
+// === CONSTANTES ===
+const API_BASE_URL = 'http://localhost:3000/api'; // A URL do nosso backend
+
 // === INICIALIZAÇÃO ===
 document.addEventListener('DOMContentLoaded', function () {
-    // Futuramente, podemos verificar o status de login aqui
     setupEventListeners();
+    // Futuramente, vamos verificar o token aqui ao carregar a página
 });
 
 // === CONFIGURAÇÃO DOS EVENT LISTENERS ===
@@ -19,9 +22,17 @@ function setupEventListeners() {
     // Fechar Modais
     window.addEventListener('click', (e) => {
         if (e.target.classList.contains('modal')) {
-            e.target.style.display = 'none';
+            closeModal(e.target.id);
         }
     });
+
+    // --- ESTA É A PARTE QUE FALTAVA ---
+    // Formulário de Registro
+    document.getElementById('registerForm').addEventListener('submit', handleRegister);
+
+    // Formulário de Login
+    document.getElementById('loginForm').addEventListener('submit', handleLogin);
+    // ------------------------------------
 
     // Upload de Arquivo
     const fileDropzone = document.getElementById('file-dropzone');
@@ -32,16 +43,91 @@ function setupEventListeners() {
     fileDropzone.addEventListener('drop', (e) => {
         e.preventDefault();
         fileDropzone.classList.remove('dragover');
-        if (e.dataTransfer.files.length) {
-            handleFileSelect(e.dataTransfer.files[0]);
-        }
+        if (e.dataTransfer.files.length) handleFileSelect(e.dataTransfer.files[0]);
     });
     fileInput.addEventListener('change', (e) => {
-        if (e.target.files.length) {
-            handleFileSelect(e.target.files[0]);
-        }
+        if (e.target.files.length) handleFileSelect(e.target.files[0]);
     });
 }
+
+// === FUNÇÕES DE AUTENTICAÇÃO (REAIS) ===
+
+async function handleRegister(event) {
+    event.preventDefault(); // Impede o recarregamento da página
+    const form = event.target;
+    const name = form.querySelector('#register-name').value;
+    const email = form.querySelector('#register-email').value;
+    const password = form.querySelector('#register-password').value;
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/auth/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, email, password })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || 'Falha ao registrar.');
+        }
+
+        alert('Registro realizado com sucesso! Agora você pode fazer o login.');
+        closeModal('registerModal');
+        openLoginModal();
+
+    } catch (error) {
+        console.error('Erro no registro:', error);
+        alert(`Erro no registro: ${error.message}`);
+    }
+}
+
+async function handleLogin(event) {
+    event.preventDefault();
+    const form = event.target;
+    const email = form.querySelector('#login-email').value;
+    const password = form.querySelector('#login-password').value;
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || 'Email ou senha inválidos.');
+        }
+
+        authToken = data.token;
+        localStorage.setItem('authToken', authToken);
+
+        document.getElementById('authButtons').style.display = 'none';
+        document.getElementById('userInfo').style.display = 'flex';
+        document.getElementById('userName').textContent = data.name || 'Usuário';
+
+        alert('Login realizado com sucesso!');
+        closeModal('loginModal');
+
+    } catch (error) {
+        console.error('Erro no login:', error);
+        alert(`Erro no login: ${error.message}`);
+    }
+}
+
+function logout() {
+    authToken = null;
+    localStorage.removeItem('authToken');
+
+    document.getElementById('authButtons').style.display = 'flex';
+    document.getElementById('userInfo').style.display = 'none';
+    document.getElementById('userName').textContent = '';
+
+    alert("Você foi desconectado.");
+}
+
 
 // === FUNÇÕES DE UI (INTERFACE DO USUÁRIO) ===
 function openLoginModal() { document.getElementById('loginModal').style.display = 'flex'; }
@@ -62,9 +148,6 @@ function handleFileSelect(file) {
 }
 
 // === FUNÇÕES DE VERIFICAÇÃO (SIMULADAS) ===
-// Estas funções agora apenas mostram um resultado de exemplo.
-// No futuro, elas farão as chamadas reais para o backend.
-
 function checkUrl() {
     const input = document.getElementById('url-input').value;
     const resultsArea = document.getElementById('url-results');
@@ -88,44 +171,12 @@ function checkText() {
     setTimeout(() => showResults(resultsArea, { type: 'Texto', value: `"${input.substring(0, 30)}..."`, risk: 'medium' }), 2000);
 }
 
-// === FUNÇÕES DE EXIBIÇÃO DE RESULTADOS (SIMULADAS) ===
 function showLoading(resultsArea, message) {
     resultsArea.style.display = 'block';
-    resultsArea.innerHTML = `
-        <div class="loading">
-            <div class="spinner"></div>
-            <p>${message}</p>
-        </div>
-    `;
+    resultsArea.innerHTML = `<div class="loading"><div class="spinner"></div><p>${message}</p></div>`;
 }
 
 function showResults(resultsArea, result) {
     const riskText = { low: 'Baixo', medium: 'Médio', high: 'Alto' };
-    resultsArea.innerHTML = `
-        <h3>Resultado da Análise</h3>
-        <div class="result-item">
-            <span>Item Verificado:</span>
-            <strong>${result.value}</strong>
-        </div>
-        <div class="result-item">
-            <span>Nível de Risco:</span>
-            <span class="risk-indicator risk-${result.risk}">${riskText[result.risk]}</span>
-        </div>
-        <div class="result-item">
-            <span>Verificação de Phishing:</span>
-            <strong style="color: var(--accent-green)">OK</strong>
-        </div>
-        <div class="result-item">
-            <span>Verificação de Malware:</span>
-            <strong style="color: ${result.risk === 'high' ? 'var(--risk-high)' : 'var(--accent-green)'}">
-                ${result.risk === 'high' ? 'AMEAÇA ENCONTRADA' : 'OK'}
-            </strong>
-        </div>
-    `;
-}
-
-// === FUNÇÕES DE AUTENTICAÇÃO (AINDA SIMULADAS) ===
-function logout() {
-    // Lógica de logout virá aqui
-    alert("Função de Logout chamada!");
+    resultsArea.innerHTML = `<h3>Resultado da Análise</h3><div class="result-item"><span>Item Verificado:</span><strong>${result.value}</strong></div><div class="result-item"><span>Nível de Risco:</span><span class="risk-indicator risk-${result.risk}">${riskText[result.risk]}</span></div><div class="result-item"><span>Verificação de Phishing:</span><strong style="color: var(--accent-green)">OK</strong></div><div class="result-item"><span>Verificação de Malware:</span><strong style="color: ${result.risk === 'high' ? 'var(--risk-high)' : 'var(--accent-green)'}">${result.risk === 'high' ? 'AMEAÇA ENCONTRADA' : 'OK'}</strong></div>`;
 }

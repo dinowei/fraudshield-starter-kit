@@ -1,31 +1,34 @@
-// 1. Importações das dependências
-require('dotenv').config(); // Carrega as variáveis de ambiente do arquivo .env
 const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
+const dotenv = require('dotenv');
+const cors = require('cors'); // Importamos o CORS
+
+// Carrega as variáveis de ambiente do arquivo .env
+dotenv.config();
+
+// Importa nossas rotas
 const authRoutes = require('./routes/auth');
 
-
-// 2. Inicialização do App Express
 const app = express();
 
-// 3. Configuração dos Middlewares
-app.use(cors()); // Permite que o frontend (de outro domínio) faça requisições para este backend
-app.use(express.json()); // Permite que o servidor entenda requisições com corpo no formato JSON
+// === MIDDLEWARES ESSENCIAIS ===
+// Habilita o CORS para permitir que o frontend (rodando em outra porta) acesse o backend
+app.use(cors());
+// Permite que o servidor entenda JSON enviado no corpo das requisições
+app.use(express.json());
 
-// 4. Conexão com o Banco de Dados MongoDB
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/fraudshield';
-
-mongoose.connect(MONGO_URI)
-    .then(() => console.log('Conectado com sucesso ao MongoDB!'))
-    .catch(err => console.error('Erro ao conectar ao MongoDB:', err));
-
-/// 5. Rotas da API
+// === ROTAS DA APLICAÇÃO ===
+// Diz ao Express para usar as rotas de autenticação para qualquer URL que comece com /api/auth
 app.use('/api/auth', authRoutes);
 
+// Rota de teste para a raiz da API
+app.get('/api', (req, res) => {
+    res.send('API do FraudGuard está funcionando!');
+});
 
-// 6. Inicialização do Servidor
-const PORT = process.env.PORT || 3001;
+// Define a porta do servidor
+const PORT = process.env.PORT || 3000;
+
+// Inicia o servidor
 app.listen(PORT, () => {
     console.log(`Servidor rodando na porta ${PORT}`);
 });
