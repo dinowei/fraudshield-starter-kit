@@ -1,182 +1,132 @@
-// === VARIÁVEIS GLOBAIS ===
-let currentUser = null;
-let authToken = null;
-let selectedFile = null;
+document.addEventListener('DOMContentLoaded', () => {
+    // --- Seletores de Elementos ---
+    const tabs = document.querySelectorAll('.tab');
+    const tabContents = document.querySelectorAll('.tab-content');
+    const loginButton = document.getElementById('login-button');
+    const registerButton = document.getElementById('register-button');
+    const loginModal = document.getElementById('loginModal');
+    const registerModal = document.getElementById('registerModal');
+    const closeButtons = document.querySelectorAll('.close-btn');
 
-// === CONSTANTES ===
-const API_BASE_URL = 'http://localhost:3000/api'; // A URL do nosso backend
+    // URL
+    const urlInput = document.getElementById('url-input');
+    const urlCheckBtn = document.getElementById('url-check-btn');
+    const urlResults = document.getElementById('url-results');
 
-// === INICIALIZAÇÃO ===
-document.addEventListener('DOMContentLoaded', function () {
-    setupEventListeners();
-    // Futuramente, vamos verificar o token aqui ao carregar a página
-});
-
-// === CONFIGURAÇÃO DOS EVENT LISTENERS ===
-function setupEventListeners() {
-    // Troca de Abas
-    document.querySelectorAll('.tab').forEach(tab => {
-        tab.addEventListener('click', () => switchTab(tab.dataset.tab));
-    });
-
-    // Fechar Modais
-    window.addEventListener('click', (e) => {
-        if (e.target.classList.contains('modal')) {
-            closeModal(e.target.id);
-        }
-    });
-
-    // --- ESTA É A PARTE QUE FALTAVA ---
-    // Formulário de Registro
-    document.getElementById('registerForm').addEventListener('submit', handleRegister);
-
-    // Formulário de Login
-    document.getElementById('loginForm').addEventListener('submit', handleLogin);
-    // ------------------------------------
-
-    // Upload de Arquivo
+    // ARQUIVO
     const fileDropzone = document.getElementById('file-dropzone');
     const fileInput = document.getElementById('file-input');
-    fileDropzone.addEventListener('click', () => fileInput.click());
-    fileDropzone.addEventListener('dragover', (e) => { e.preventDefault(); fileDropzone.classList.add('dragover'); });
-    fileDropzone.addEventListener('dragleave', () => fileDropzone.classList.remove('dragover'));
-    fileDropzone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        fileDropzone.classList.remove('dragover');
-        if (e.dataTransfer.files.length) handleFileSelect(e.dataTransfer.files[0]);
-    });
-    fileInput.addEventListener('change', (e) => {
-        if (e.target.files.length) handleFileSelect(e.target.files[0]);
-    });
-}
+    const fileNameSpan = document.getElementById('file-name');
+    const fileCheckBtn = document.getElementById('file-check-btn');
+    const fileResults = document.getElementById('file-results');
+    let selectedFile = null;
 
-// === FUNÇÕES DE AUTENTICAÇÃO (REAIS) ===
-
-async function handleRegister(event) {
-    event.preventDefault(); // Impede o recarregamento da página
-    const form = event.target;
-    const name = form.querySelector('#register-name').value;
-    const email = form.querySelector('#register-email').value;
-    const password = form.querySelector('#register-password').value;
-
-    try {
-        const response = await fetch(`${API_BASE_URL}/auth/register`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, email, password })
+    // --- Lógica de Abas ---
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            tabs.forEach(item => item.classList.remove('active'));
+            tabContents.forEach(item => item.classList.remove('active'));
+            tab.classList.add('active');
+            document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
         });
+    });
 
-        const data = await response.json();
+    // --- Lógica dos Modais ---
+    function openModal(modal) { if (modal) modal.style.display = 'block'; }
+    function closeModal(modal) { if (modal) modal.style.display = 'none'; }
+    if (loginButton) loginButton.addEventListener('click', () => openModal(loginModal));
+    if (registerButton) registerButton.addEventListener('click', () => openModal(registerModal));
+    closeButtons.forEach(btn => {
+        const parentModal = btn.closest('.modal');
+        btn.addEventListener('click', () => closeModal(parentModal));
+    });
+    window.addEventListener('click', (event) => {
+        if (event.target == loginModal) closeModal(loginModal);
+        if (event.target == registerModal) closeModal(registerModal);
+    });
 
-        if (!response.ok) {
-            throw new Error(data.message || 'Falha ao registrar.');
-        }
-
-        alert('Registro realizado com sucesso! Agora você pode fazer o login.');
-        closeModal('registerModal');
-        openLoginModal();
-
-    } catch (error) {
-        console.error('Erro no registro:', error);
-        alert(`Erro no registro: ${error.message}`);
-    }
-}
-
-async function handleLogin(event) {
-    event.preventDefault();
-    const form = event.target;
-    const email = form.querySelector('#login-email').value;
-    const password = form.querySelector('#login-password').value;
-
-    try {
-        const response = await fetch(`${API_BASE_URL}/auth/login`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password })
+    // --- Lógica de Verificação de URL ---
+    if (urlCheckBtn) {
+        urlCheckBtn.addEventListener('click', async () => {
+            const url = urlInput.value;
+            if (!url) { alert('Por favor, insira uma URL.'); return; }
+            urlResults.innerHTML = '<p>Analisando, por favor aguarde...</p>';
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('http://localhost:3000/api/check/url', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': token ? `Bearer ${token}` : '' },
+                    body: JSON.stringify({ url: url })
+                });
+                if (!response.ok) throw new Error('A resposta da rede não foi OK.');
+                const results = await response.json();
+                displayResults(results, urlResults);
+            } catch (error) {
+                console.error('Erro ao verificar URL:', error);
+                urlResults.innerHTML = `<p class="error">Ocorreu um erro ao verificar a URL.</p>`;
+            }
         });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.message || 'Email ou senha inválidos.');
-        }
-
-        authToken = data.token;
-        localStorage.setItem('authToken', authToken);
-
-        document.getElementById('authButtons').style.display = 'none';
-        document.getElementById('userInfo').style.display = 'flex';
-        document.getElementById('userName').textContent = data.name || 'Usuário';
-
-        alert('Login realizado com sucesso!');
-        closeModal('loginModal');
-
-    } catch (error) {
-        console.error('Erro no login:', error);
-        alert(`Erro no login: ${error.message}`);
     }
-}
 
-function logout() {
-    authToken = null;
-    localStorage.removeItem('authToken');
+    // --- Lógica para Verificação de Arquivo ---
+    if (fileDropzone) {
+        fileDropzone.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', () => handleFileSelect(fileInput.files));
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            fileDropzone.addEventListener(eventName, preventDefaults, false);
+        });
+        function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
+        fileDropzone.addEventListener('drop', (e) => handleFileSelect(e.dataTransfer.files), false);
+    }
 
-    document.getElementById('authButtons').style.display = 'flex';
-    document.getElementById('userInfo').style.display = 'none';
-    document.getElementById('userName').textContent = '';
+    function handleFileSelect(files) {
+        if (files.length > 0) {
+            selectedFile = files[0];
+            fileNameSpan.textContent = selectedFile.name;
+            fileCheckBtn.disabled = false;
+        }
+    }
 
-    alert("Você foi desconectado.");
-}
+    if (fileCheckBtn) {
+        fileCheckBtn.addEventListener('click', async () => {
+            if (!selectedFile) { alert('Por favor, selecione um arquivo.'); return; }
+            fileResults.innerHTML = '<p>Enviando e analisando o arquivo, isso pode levar um minuto...</p>';
+            fileCheckBtn.disabled = true;
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('http://localhost:3000/api/check/file', {
+                    method: 'POST',
+                    headers: { 'Authorization': token ? `Bearer ${token}` : '' },
+                    body: formData
+                });
+                if (!response.ok) throw new Error('A resposta da rede não foi OK.');
+                const result = await response.json();
+                displayResults([result], fileResults);
+            } catch (error) {
+                console.error('Erro ao verificar arquivo:', error);
+                fileResults.innerHTML = `<p class="error">Ocorreu um erro ao verificar o arquivo.</p>`;
+            } finally {
+                fileCheckBtn.disabled = false;
+            }
+        });
+    }
 
-
-// === FUNÇÕES DE UI (INTERFACE DO USUÁRIO) ===
-function openLoginModal() { document.getElementById('loginModal').style.display = 'flex'; }
-function openRegisterModal() { document.getElementById('registerModal').style.display = 'flex'; }
-function closeModal(modalId) { document.getElementById(modalId).style.display = 'none'; }
-
-function switchTab(tabName) {
-    document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-    document.querySelector(`.tab[data-tab="${tabName}"]`).classList.add('active');
-    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-    document.getElementById(`tab-${tabName}`).classList.add('active');
-}
-
-function handleFileSelect(file) {
-    selectedFile = file;
-    document.getElementById('file-name').textContent = file.name;
-    document.getElementById('file-check-btn').disabled = false;
-}
-
-// === FUNÇÕES DE VERIFICAÇÃO (SIMULADAS) ===
-function checkUrl() {
-    const input = document.getElementById('url-input').value;
-    const resultsArea = document.getElementById('url-results');
-    if (!input) return;
-    showLoading(resultsArea, "Analisando URL...");
-    setTimeout(() => showResults(resultsArea, { type: 'URL', value: input, risk: 'low' }), 1500);
-}
-
-function checkFile() {
-    const resultsArea = document.getElementById('file-results');
-    if (!selectedFile) return;
-    showLoading(resultsArea, "Enviando e analisando arquivo...");
-    setTimeout(() => showResults(resultsArea, { type: 'Arquivo', value: selectedFile.name, risk: 'high' }), 2500);
-}
-
-function checkText() {
-    const input = document.getElementById('text-input').value;
-    const resultsArea = document.getElementById('text-results');
-    if (!input) return;
-    showLoading(resultsArea, "Analisando conteúdo do texto...");
-    setTimeout(() => showResults(resultsArea, { type: 'Texto', value: `"${input.substring(0, 30)}..."`, risk: 'medium' }), 2000);
-}
-
-function showLoading(resultsArea, message) {
-    resultsArea.style.display = 'block';
-    resultsArea.innerHTML = `<div class="loading"><div class="spinner"></div><p>${message}</p></div>`;
-}
-
-function showResults(resultsArea, result) {
-    const riskText = { low: 'Baixo', medium: 'Médio', high: 'Alto' };
-    resultsArea.innerHTML = `<h3>Resultado da Análise</h3><div class="result-item"><span>Item Verificado:</span><strong>${result.value}</strong></div><div class="result-item"><span>Nível de Risco:</span><span class="risk-indicator risk-${result.risk}">${riskText[result.risk]}</span></div><div class="result-item"><span>Verificação de Phishing:</span><strong style="color: var(--accent-green)">OK</strong></div><div class="result-item"><span>Verificação de Malware:</span><strong style="color: ${result.risk === 'high' ? 'var(--risk-high)' : 'var(--accent-green)'}">${result.risk === 'high' ? 'AMEAÇA ENCONTRADA' : 'OK'}</strong></div>`;
-}
+    // --- Função Genérica para Exibir Resultados ---
+    function displayResults(results, container) {
+        container.innerHTML = '<h3>Resultados da Análise:</h3>';
+        if (!Array.isArray(results)) results = [results];
+        results.forEach(result => {
+            const isSafeClass = result.isSafe ? 'safe' : 'unsafe';
+            const resultCard = `
+                <div class="result-card ${isSafeClass}">
+                    <h4>${result.source}</h4>
+                    <p><strong>Status:</strong> ${result.isSafe ? 'Seguro' : 'Perigoso'}</p>
+                    <p><strong>Detalhes:</strong> ${result.details || result.error}</p>
+                </div>
+            `;
+            container.innerHTML += resultCard;
+        });
+    }
+});

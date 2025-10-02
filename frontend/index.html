@@ -19,19 +19,20 @@
     <!-- SEÇÃO DE AUTENTICAÇÃO -->
     <div class="auth-section">
         <div id="authButtons" class="auth-buttons">
-            <button class="btn btn-secondary" onclick="openLoginModal( )">Login</button>
-            <button class="btn btn-primary" onclick="openRegisterModal()">Registrar</button>
+            <!-- IDs adicionados para o JavaScript -->
+            <button id="login-button" class="btn btn-secondary">Login</button>
+            <button id="register-button" class="btn btn-primary">Registrar</button>
         </div>
         <div id="userInfo" class="user-info" style="display: none;">
             <span id="userName"></span>
-            <button class="btn btn-logout" onclick="logout()">Logout</button>
+            <button id="logout-button" class="btn btn-logout">Logout</button>
         </div>
     </div>
 
     <!-- MODAIS -->
     <div id="loginModal" class="modal">
         <div class="modal-content">
-            <button class="close-btn" onclick="closeModal('loginModal')">&times;</button>
+            <button class="close-btn">&times;</button>
             <h2>Acesse sua Conta</h2>
             <form id="loginForm">
                 <div class="form-group">
@@ -49,7 +50,7 @@
 
     <div id="registerModal" class="modal">
         <div class="modal-content">
-            <button class="close-btn" onclick="closeModal('registerModal')">&times;</button>
+            <button class="close-btn">&times;</button>
             <h2>Crie sua Conta</h2>
             <form id="registerForm">
                 <div class="form-group">
@@ -72,9 +73,6 @@
     <!-- CONTEÚDO PRINCIPAL -->
     <div class="container">
         <header class="main-header">
-            <div class="logo">
-                <!-- A imagem do logo será inserida aqui via CSS para melhor controle -->
-            </div>
             <h1>FraudGuard</h1>
             <p class="subtitle">Advanced Threat Protection</p>
         </header>
@@ -93,7 +91,7 @@
                 </section>
                 <section class="history-section" id="historySection" style="display: none;">
                     <h3><i class="fas fa-history"></i> Histórico Recente</h3>
-                    <div id="historyContent"><!-- Histórico será carregado aqui --></div>
+                    <div id="historyContent"></div>
                 </section>
             </aside>
 
@@ -112,7 +110,8 @@
                             <label for="url-input">Analisar URL</label>
                             <input type="text" id="url-input" placeholder="https://exemplo.com">
                         </div>
-                        <button class="btn btn-primary" onclick="checkUrl( )"><i class="fas fa-search"></i> Verificar
+                        <!-- ID adicionado para o JavaScript -->
+                        <button id="url-check-btn" class="btn btn-primary"><i class="fas fa-search"></i> Verificar
                             URL</button>
                     </div>
                     <div id="url-results" class="results-area"></div>
@@ -122,14 +121,15 @@
                 <div id="tab-file" class="tab-content">
                     <div class="form-section">
                         <label>Analisar Arquivo</label>
+                        <!-- IDs corretos para a lógica de upload -->
                         <div class="file-upload" id="file-dropzone">
                             <i class="fas fa-cloud-upload-alt"></i>
                             <p>Arraste e solte um arquivo aqui, ou clique para selecionar</p>
                             <span id="file-name"></span>
                         </div>
                         <input type="file" id="file-input" style="display: none;">
-                        <button class="btn btn-primary" onclick="checkFile()" id="file-check-btn" disabled><i
-                                class="fas fa-search"></i> Verificar Arquivo</button>
+                        <button class="btn btn-primary" id="file-check-btn" disabled><i class="fas fa-search"></i>
+                            Verificar Arquivo</button>
                     </div>
                     <div id="file-results" class="results-area"></div>
                 </div>
@@ -142,7 +142,8 @@
                             <textarea id="text-input" rows="5"
                                 placeholder="Cole uma mensagem de email, SMS ou qualquer texto suspeito..."></textarea>
                         </div>
-                        <button class="btn btn-primary" onclick="checkText()"><i class="fas fa-search"></i> Analisar
+                        <!-- ID adicionado para o JavaScript -->
+                        <button id="text-check-btn" class="btn btn-primary"><i class="fas fa-search"></i> Analisar
                             Texto</button>
                     </div>
                     <div id="text-results" class="results-area"></div>

@@ -1,16 +1,13 @@
 const axios = require('axios');
+const SearchHistory = require('../models/SearchHistory');
 
 // Função para chamar a API do Google Safe Browsing
 const checkGoogleSafeBrowsing = async (url) => {
     const apiKey = process.env.GOOGLE_SAFE_BROWSING_API_KEY;
     const apiUrl = `https://safebrowsing.googleapis.com/v4/threatMatches:find?key=${apiKey}`;
-
     try {
         const response = await axios.post(apiUrl, {
-            client: {
-                clientId: 'fraudguard-app',
-                clientVersion: '1.0.0'
-            },
+            client: { clientId: 'fraudguard-app', clientVersion: '1.0.0' },
             threatInfo: {
                 threatTypes: ['MALWARE', 'SOCIAL_ENGINEERING', 'UNWANTED_SOFTWARE', 'POTENTIALLY_HARMFUL_APPLICATION'],
                 platformTypes: ['ANY_PLATFORM'],
@@ -18,18 +15,10 @@ const checkGoogleSafeBrowsing = async (url) => {
                 threatEntries: [{ url: url }]
             }
         });
-
-        // Se a resposta contiver 'matches', a URL é considerada perigosa
         if (response.data.matches) {
-            return {
-                source: 'Google Safe Browsing',
-                isSafe: false,
-                details: `Ameaça encontrada: ${response.data.matches[0].threatType}`
-            };
+            return { source: 'Google Safe Browsing', isSafe: false, details: `Ameaça encontrada: ${response.data.matches[0].threatType}` };
         }
-
         return { source: 'Google Safe Browsing', isSafe: true, details: 'Nenhuma ameaça encontrada.' };
-
     } catch (error) {
         console.error('Erro ao chamar Google Safe Browsing:', error.message);
         return { source: 'Google Safe Browsing', error: 'Não foi possível verificar com o Google.' };
@@ -40,40 +29,20 @@ const checkGoogleSafeBrowsing = async (url) => {
 const checkVirusTotal = async (url) => {
     const apiKey = process.env.VIRUSTOTAL_API_KEY;
     const apiUrl = `https://www.virustotal.com/api/v3/urls`;
-
     try {
-        // Primeiro, enviamos a URL para análise
         const submissionResponse = await axios.post(apiUrl, `url=${url}`, {
-            headers: {
-                'x-apikey': apiKey,
-                'Content-Type': 'application/x-www-form-urlencoded'
-            }
+            headers: { 'x-apikey': apiKey, 'Content-Type': 'application/x-www-form-urlencoded' }
         });
-
-        // Pegamos o ID da análise para consultar o resultado
         const analysisId = submissionResponse.data.data.id;
         const reportUrl = `https://www.virustotal.com/api/v3/analyses/${analysisId}`;
-
-        // Aguardamos um pouco para o relatório ser gerado (isso pode ser melhorado no futuro )
-        await new Promise(resolve => setTimeout(resolve, 15000)); // Espera 15 segundos
-
-        const reportResponse = await axios.get(reportUrl, {
-            headers: { 'x-apikey': apiKey }
-        });
-
+        await new Promise(resolve => setTimeout(resolve, 15000));
+        const reportResponse = await axios.get(reportUrl, { headers: { 'x-apikey': apiKey } });
         const stats = reportResponse.data.data.attributes.stats;
         const maliciousCount = stats.malicious + stats.suspicious;
-
         if (maliciousCount > 0) {
-            return {
-                source: 'VirusTotal',
-                isSafe: false,
-                details: `${maliciousCount} de ${stats.harmless + stats.malicious + stats.suspicious} motores classificaram como malicioso.`
-            };
+            return { source: 'VirusTotal', isSafe: false, details: `${maliciousCount} de ${stats.harmless + stats.malicious + stats.suspicious} motores classificaram como malicioso.` };
         }
-
         return { source: 'VirusTotal', isSafe: true, details: 'Nenhuma ameaça encontrada.' };
-
     } catch (error) {
         console.error('Erro ao chamar VirusTotal:', error.response ? error.response.data : error.message);
         return { source: 'VirusTotal', error: 'Não foi possível verificar com o VirusTotal.' };
@@ -81,20 +50,36 @@ const checkVirusTotal = async (url) => {
 };
 
 
-// Função principal que orquestra as chamadas
-const checkUrlSecurity = async (url) => {
+// Função principal que orquestra as chamadas E SALVA NO BANCO
+const checkUrlSecurity = async (url, userId) => {
     console.log(`Iniciando verificação de segurança para: ${url}`);
 
     // Chama as duas APIs em paralelo para ganhar tempo
     const results = await Promise.all([
         checkGoogleSafeBrowsing(url),
-        // checkVirusTotal(url) // Descomente esta linha para ativar a verificação do VirusTotal
+        checkVirusTotal(url) // <-- LINHA ATIVADA!
     ]);
 
-    // Por enquanto, vamos retornar os resultados brutos
-    return results;
-};
+    // Determina se o resultado final é seguro
+    const isOverallSafe = results.every(res => res.isSafe);
 
+    // LÓGICA PARA SALVAR NO BANCO DE DADOS
+    try {
+        const newHistoryEntry = new SearchHistory({
+            user: userId,
+            searchType: 'url',
+            query: url,
+            isSafe: isOverallSafe,
+            results: results
+        });
+        await newHistoryEntry.save();
+        console.log('Histórico de busca salvo com sucesso!');
+    } catch (error) {
+        console.error('Erro ao salvar histórico de busca:', error.message);
+    }
+
+    return results; // Retorna os resultados da análise para o frontend
+};
 
 module.exports = {
     checkUrlSecurity

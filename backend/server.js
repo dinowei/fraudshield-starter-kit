@@ -19,7 +19,14 @@ const app = express();
 // =================================================================
 // MIDDLEWARES ESSENCIAIS
 // =================================================================
-app.use(cors());
+// Configuração detalhada do CORS para permitir requisições do Live Server
+const corsOptions = {
+    origin: 'http://127.0.0.1:5500', // A origem do seu frontend (Live Server )
+    optionsSuccessStatus: 200
+};
+
+app.use(cors(corsOptions));
+
 app.use(express.json()); // Permite que o servidor entenda JSON no corpo das requisições
 
 // =================================================================

@@ -1,35 +1,50 @@
 const jwt = require('jsonwebtoken');
+const User = require('../models/userModel');
 
-// Middleware para proteger rotas
-const protect = (req, res, next) => {
+// Middleware para proteger rotas (usuário PRECISA estar logado)
+const protect = async (req, res, next) => {
     let token;
 
-    // Verifica se o token está no cabeçalho de autorização e começa com "Bearer"
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
         try {
-            // 1. Extrai o token do cabeçalho (formato: "Bearer TOKEN")
+            // Pega o token do cabeçalho (ex: "Bearer eyJhbGci...")
             token = req.headers.authorization.split(' ')[1];
 
-            // 2. Verifica se o token é válido usando a nossa chave secreta
+            // Verifica se o token é válido
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-            // 3. Adiciona os dados do usuário (do token) ao objeto 'req'
-            //    Isso permite que as próximas rotas saibam quem é o usuário.
-            //    (Vamos precisar buscar o usuário no banco de dados aqui no futuro, mas por agora isso é suficiente)
-            req.user = decoded; // Ex: { id: '...', iat: ..., exp: ... }
+            // Pega o usuário do banco de dados pelo ID do token e o anexa ao objeto 'req'
+            req.user = await User.findById(decoded.id).select('-password');
 
-            // 4. Deixa o pedido continuar para a próxima etapa (a rota protegida)
-            next();
-
+            next(); // Passa para a próxima função (o controller da rota)
         } catch (error) {
-            console.error('Erro na autenticação do token:', error);
-            res.status(401).json({ message: 'Não autorizado, token falhou.' });
+            console.error(error);
+            res.status(401).json({ message: 'Não autorizado, token falhou' });
         }
     }
 
     if (!token) {
-        res.status(401).json({ message: 'Não autorizado, nenhum token encontrado.' });
+        res.status(401).json({ message: 'Não autorizado, sem token' });
     }
 };
 
-module.exports = { protect };
+// Middleware opcional (TENTA autenticar, mas não falha se não conseguir)
+const optional = async (req, res, next) => {
+    let token;
+
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+        try {
+            token = req.headers.authorization.split(' ')[1];
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            req.user = await User.findById(decoded.id).select('-password');
+        } catch (error) {
+            // Se o token for inválido ou expirado, simplesmente ignoramos e definimos req.user como null
+            req.user = null;
+        }
+    }
+
+    next(); // Sempre continua para a próxima função, com ou sem usuário
+};
+
+// Exporta as duas funções para que possam ser usadas em outros arquivos
+module.exports = { protect, optional };
