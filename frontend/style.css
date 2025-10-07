@@ -26,34 +26,29 @@ body {
 
 .container {
     max-width: 900px;
-    /* Reduzido para um layout mais focado */
     margin: 0 auto;
 }
 
-/* === CABEÇALHO E LOGO (NOVO LAYOUT) === */
+/* === CABEÇALHO E LOGO === */
 .main-header {
     text-align: center;
     margin-top: 40px;
-    /* Espaço acima do logo */
     margin-bottom: 50px;
 }
 
 .main-header h1 {
     font-size: 2.5rem;
     font-weight: 600;
-    color: var(--text-color);
 }
 
 .main-header .subtitle {
     font-size: 1rem;
     color: var(--text-muted);
-    font-weight: 400;
 }
 
-/* === BOTÕES E AUTENTICAÇÃO (NOVO LAYOUT) === */
+/* === BOTÕES E AUTENTICAÇÃO === */
 .auth-section {
     position: absolute;
-    /* Posição absoluta no topo */
     top: 20px;
     right: 20px;
     z-index: 1000;
@@ -71,11 +66,15 @@ body {
     border-radius: 5px;
     border: 1px solid transparent;
     font-weight: 500;
-    /* Um pouco mais fino */
     cursor: pointer;
     transition: all 0.2s ease-in-out;
     font-family: var(--font-main);
     font-size: 0.9rem;
+}
+
+.btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
 }
 
 .btn-primary {
@@ -84,7 +83,7 @@ body {
     border-color: var(--accent-green);
 }
 
-.btn-primary:hover {
+.btn-primary:hover:not(:disabled) {
     background-color: transparent;
     color: var(--accent-green);
 }
@@ -100,11 +99,21 @@ body {
     color: var(--primary-blue);
 }
 
-/* === LAYOUT PRINCIPAL (SIDEBAR E CONTEÚDO) === */
+.btn-logout {
+    background-color: #dc3545;
+    color: white;
+    border-color: #dc3545;
+}
+
+.btn-logout:hover {
+    background-color: #c82333;
+    border-color: #bd2130;
+}
+
+/* === LAYOUT PRINCIPAL === */
 .main-content {
     display: grid;
     grid-template-columns: 250px 1fr;
-    /* Colunas fixas para sidebar e conteúdo */
     gap: 30px;
     align-items: start;
 }
@@ -122,8 +131,6 @@ body {
 /* === SEÇÕES DA SIDEBAR === */
 .stats-section h3 {
     margin-bottom: 20px;
-    color: var(--text-color);
-    /* Cor padrão, não verde */
     font-weight: 600;
     display: flex;
     align-items: center;
@@ -133,8 +140,6 @@ body {
 .stats-section h3 i {
     color: var(--accent-green);
 }
-
-/* Ícone verde */
 
 .stat-item {
     display: flex;
@@ -155,18 +160,17 @@ body {
     color: var(--text-color);
 }
 
-/* === ABAS E CONTEÚDO DAS ABAS (NOVO LAYOUT) === */
+/* === ABAS E CONTEÚDO DAS ABAS === */
 .tabs {
     display: flex;
     gap: 20px;
-    /* Espaçamento entre abas */
     margin-bottom: 20px;
 }
 
 .tab {
     padding: 10px 0;
-    /* Apenas padding vertical */
     background: none;
+    border: none;
     color: var(--text-muted);
     cursor: pointer;
     transition: all 0.2s ease-in-out;
@@ -175,7 +179,6 @@ body {
     align-items: center;
     gap: 8px;
     border-bottom: 2px solid transparent;
-    /* Borda inferior para indicar seleção */
 }
 
 .tab:hover {
@@ -196,7 +199,7 @@ body {
     display: block;
 }
 
-/* === FORMULÁRIOS (NOVO LAYOUT) === */
+/* === FORMULÁRIOS === */
 .form-section {
     background: var(--secondary-blue);
     padding: 30px;
@@ -223,7 +226,6 @@ body {
     border: 1px solid var(--text-muted);
     border-radius: 5px;
     background: var(--primary-blue);
-    /* Fundo mais escuro */
     color: var(--text-color);
     font-size: 1rem;
     font-family: var(--font-main);
@@ -234,10 +236,8 @@ body {
     outline: none;
     border-color: var(--accent-green);
     box-shadow: 0 0 0 3px #3ddc9730;
-    /* Efeito de brilho ao focar */
 }
 
-/* Botão de verificação dentro do formulário */
 .form-section .btn {
     margin-top: 10px;
     display: inline-flex;
@@ -245,7 +245,7 @@ body {
     gap: 8px;
 }
 
-/* === MODAIS (AJUSTES FINAIS) === */
+/* === MODAIS === */
 .modal {
     display: none;
     position: fixed;
@@ -292,7 +292,120 @@ body {
     margin-top: 10px;
 }
 
-/* === REMOÇÃO DO LOGO VIA HTML, POIS NÃO ESTÁ NO MOCKUP DA UI === */
-.logo {
+/* === MENSAGENS DE FEEDBACK === */
+.message {
+    padding: 10px;
+    margin-top: 15px;
+    border-radius: 5px;
+    text-align: center;
+    font-weight: 500;
     display: none;
+}
+
+.message.success {
+    background-color: #d4edda;
+    color: #155724;
+    display: block;
+}
+
+.message.error,
+.error-message {
+    background-color: #f8d7da;
+    color: #721c24;
+    display: block;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+/* === ÁREA DE UPLOAD DE ARQUIVO === */
+.file-upload {
+    border: 2px dashed var(--text-muted);
+    border-radius: 10px;
+    padding: 30px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+
+.file-upload i {
+    font-size: 2.5rem;
+    color: var(--text-muted);
+    margin-bottom: 15px;
+}
+
+.file-upload p {
+    color: var(--text-muted);
+}
+
+.file-upload #file-name {
+    display: block;
+    margin-top: 10px;
+    font-weight: bold;
+    color: var(--accent-green);
+}
+
+.file-upload.drag-over {
+    border-color: var(--accent-green);
+    background-color: #3ddc971a;
+}
+
+.file-upload.has-file {
+    border-color: var(--accent-green);
+}
+
+/* === ÁREA DE RESULTADOS === */
+.results-area {
+    margin-top: 20px;
+}
+
+.result-card {
+    background-color: #1B263B;
+    border-left: 5px solid var(--text-muted);
+    padding: 15px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.result-card h4 {
+    margin-bottom: 10px;
+    color: var(--text-color);
+}
+
+.result-card p {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.result-card.safe {
+    border-left-color: #28a745;
+}
+
+.result-card.safe p {
+    color: #28a745;
+}
+
+.result-card.unsafe {
+    border-left-color: #dc3545;
+}
+
+.result-card.unsafe p {
+    color: #dc3545;
+}
+
+.file-stats {
+    list-style-type: none;
+    padding-left: 20px;
+    margin-top: 10px;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+.file-stats li {
+    margin-bottom: 5px;
+}
+
+.file-stats li strong {
+    color: var(--text-color);
 }

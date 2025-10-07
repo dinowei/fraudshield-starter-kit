@@ -5,13 +5,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FraudGuard - Advanced Threat Protection</title>
-    <!-- Font Awesome (Ícones) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <!-- Google Fonts (Poppins ) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-    <!-- Nosso CSS -->
     <link rel="stylesheet" href="style.css">
 </head>
 
@@ -19,7 +16,6 @@
     <!-- SEÇÃO DE AUTENTICAÇÃO -->
     <div class="auth-section">
         <div id="authButtons" class="auth-buttons">
-            <!-- IDs adicionados para o JavaScript -->
             <button id="login-button" class="btn btn-secondary">Login</button>
             <button id="register-button" class="btn btn-primary">Registrar</button>
         </div>
@@ -29,7 +25,7 @@
         </div>
     </div>
 
-    <!-- MODAIS -->
+    <!-- MODAL DE LOGIN -->
     <div id="loginModal" class="modal">
         <div class="modal-content">
             <button class="close-btn">&times;</button>
@@ -43,11 +39,13 @@
                     <label for="login-password">Senha</label>
                     <input type="password" id="login-password" name="password" required>
                 </div>
+                <div id="login-message" class="message"></div>
                 <button type="submit" class="btn btn-primary btn-full">Entrar</button>
             </form>
         </div>
     </div>
 
+    <!-- MODAL DE REGISTRO -->
     <div id="registerModal" class="modal">
         <div class="modal-content">
             <button class="close-btn">&times;</button>
@@ -65,6 +63,8 @@
                     <label for="register-password">Senha</label>
                     <input type="password" id="register-password" name="password" required>
                 </div>
+                <div class="h-captcha" data-sitekey="95f20e2a-dfa2-44c2-9a52-20328fbc9c26"></div>
+                <div id="register-message" class="message"></div>
                 <button type="submit" class="btn btn-primary btn-full">Criar Conta</button>
             </form>
         </div>
@@ -78,7 +78,6 @@
         </header>
 
         <main class="main-content">
-            <!-- BARRA LATERAL -->
             <aside class="sidebar">
                 <section class="stats-section">
                     <h3><i class="fas fa-chart-bar"></i> Estatísticas</h3>
@@ -95,33 +94,41 @@
                 </section>
             </aside>
 
-            <!-- ÁREA DE CONTEÚDO -->
             <div class="content-area">
                 <div class="tabs">
                     <div class="tab active" data-tab="url"><i class="fas fa-globe"></i> URL</div>
+                    <div class="tab" data-tab="ip"><i class="fas fa-network-wired"></i> IP</div>
                     <div class="tab" data-tab="file"><i class="fas fa-file-arrow-up"></i> Arquivo</div>
                     <div class="tab" data-tab="text"><i class="fas fa-file-alt"></i> Texto</div>
                 </div>
 
-                <!-- ABA DE URL -->
                 <div id="tab-url" class="tab-content active">
                     <div class="form-section">
                         <div class="form-group">
                             <label for="url-input">Analisar URL</label>
                             <input type="text" id="url-input" placeholder="https://exemplo.com">
                         </div>
-                        <!-- ID adicionado para o JavaScript -->
                         <button id="url-check-btn" class="btn btn-primary"><i class="fas fa-search"></i> Verificar
                             URL</button>
                     </div>
                     <div id="url-results" class="results-area"></div>
                 </div>
 
-                <!-- ABA DE ARQUIVO -->
+                <div id="tab-ip" class="tab-content">
+                    <div class="form-section">
+                        <div class="form-group">
+                            <label for="ip-input">Analisar Endereço de IP</label>
+                            <input type="text" id="ip-input" placeholder="Digite o endereço de IP (ex: 8.8.8.8 )">
+                        </div>
+                        <button id="ip-check-btn" class="btn btn-primary"><i class="fas fa-search"></i> Verificar
+                            IP</button>
+                    </div>
+                    <div id="ip-results" class="results-area"></div>
+                </div>
+
                 <div id="tab-file" class="tab-content">
                     <div class="form-section">
                         <label>Analisar Arquivo</label>
-                        <!-- IDs corretos para a lógica de upload -->
                         <div class="file-upload" id="file-dropzone">
                             <i class="fas fa-cloud-upload-alt"></i>
                             <p>Arraste e solte um arquivo aqui, ou clique para selecionar</p>
@@ -134,7 +141,6 @@
                     <div id="file-results" class="results-area"></div>
                 </div>
 
-                <!-- ABA DE TEXTO -->
                 <div id="tab-text" class="tab-content">
                     <div class="form-section">
                         <div class="form-group">
@@ -142,7 +148,6 @@
                             <textarea id="text-input" rows="5"
                                 placeholder="Cole uma mensagem de email, SMS ou qualquer texto suspeito..."></textarea>
                         </div>
-                        <!-- ID adicionado para o JavaScript -->
                         <button id="text-check-btn" class="btn btn-primary"><i class="fas fa-search"></i> Analisar
                             Texto</button>
                     </div>
@@ -152,7 +157,7 @@
         </main>
     </div>
 
-    <!-- Nosso JavaScript -->
+    <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
     <script src="script.js"></script>
 </body>
 

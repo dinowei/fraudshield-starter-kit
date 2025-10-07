@@ -1,7 +1,9 @@
+// Caminho do arquivo: backend/services/urlService.js
+
 const axios = require('axios');
 const SearchHistory = require('../models/SearchHistory');
 
-// Função para chamar a API do Google Safe Browsing
+// Função para chamar a API do Google Safe Browsing (SEU CÓDIGO ORIGINAL)
 const checkGoogleSafeBrowsing = async (url) => {
     const apiKey = process.env.GOOGLE_SAFE_BROWSING_API_KEY;
     const apiUrl = `https://safebrowsing.googleapis.com/v4/threatMatches:find?key=${apiKey}`;
@@ -25,7 +27,7 @@ const checkGoogleSafeBrowsing = async (url) => {
     }
 };
 
-// Função para chamar a API do VirusTotal
+// Função para chamar a API do VirusTotal (SEU CÓDIGO ORIGINAL)
 const checkVirusTotal = async (url) => {
     const apiKey = process.env.VIRUSTOTAL_API_KEY;
     const apiUrl = `https://www.virustotal.com/api/v3/urls`;
@@ -49,36 +51,74 @@ const checkVirusTotal = async (url) => {
     }
 };
 
+// ===================================================================
+// === FUNÇÃO ATUALIZADA PARA URLSCAN.IO (COM SCREENSHOT) ===
+// ===================================================================
+const checkUrlScan = async (url) => {
+    const apiKey = process.env.URLSCAN_API_KEY;
+    const domain = new URL(url).hostname;
+    const apiUrl = `https://urlscan.io/api/v1/search/?q=domain:${domain}`;
 
-// Função principal que orquestra as chamadas E SALVA NO BANCO
+    try {
+        const { data } = await axios.get(apiUrl, {
+            headers: { 'API-Key': apiKey }
+        });
+
+        if (data.results && data.results.length > 0) {
+            const maliciousScan = data.results.find(
+                result => result.verdicts?.overall?.malicious
+            );
+
+            if (maliciousScan) {
+                // Retorna um objeto 'details' mais rico com a mensagem e o screenshot
+                return {
+                    source: 'URLScan.io',
+                    isSafe: false,
+                    details: {
+                        message: 'Veredito malicioso encontrado em varreduras recentes.',
+                        screenshot: maliciousScan.screenshot // <<< URL DO SCREENSHOT INCLUÍDA
+                    }
+                };
+            }
+        }
+        return { source: 'URLScan.io', isSafe: true, details: 'Nenhuma varredura recente com veredito malicioso.' };
+    } catch (error) {
+        console.error('Erro no URLScan.io:', error.message);
+        return { source: 'URLScan.io', error: 'Não foi possível verificar com o URLScan.io.' };
+    }
+};
+
+
+// Função principal que orquestra as chamadas E SALVA NO BANCO (ATUALIZADA)
 const checkUrlSecurity = async (url, userId) => {
     console.log(`Iniciando verificação de segurança para: ${url}`);
 
-    // Chama as duas APIs em paralelo para ganhar tempo
+    // Chama as TRÊS APIs em paralelo
     const results = await Promise.all([
         checkGoogleSafeBrowsing(url),
-        checkVirusTotal(url) // <-- LINHA ATIVADA!
+        checkVirusTotal(url),
+        checkUrlScan(url) // <<< NOVA API ADICIONADA AQUI
     ]);
 
-    // Determina se o resultado final é seguro
-    const isOverallSafe = results.every(res => res.isSafe);
+    const isOverallSafe = results.every(res => res.isSafe === true);
 
-    // LÓGICA PARA SALVAR NO BANCO DE DADOS
-    try {
-        const newHistoryEntry = new SearchHistory({
-            user: userId,
-            searchType: 'url',
-            query: url,
-            isSafe: isOverallSafe,
-            results: results
-        });
-        await newHistoryEntry.save();
-        console.log('Histórico de busca salvo com sucesso!');
-    } catch (error) {
-        console.error('Erro ao salvar histórico de busca:', error.message);
+    if (userId) {
+        try {
+            const newHistoryEntry = new SearchHistory({
+                user: userId,
+                searchType: 'url',
+                query: url,
+                isSafe: isOverallSafe,
+                results: results
+            });
+            await newHistoryEntry.save();
+            console.log('Histórico de busca salvo com sucesso!');
+        } catch (error) {
+            console.error('Erro ao salvar histórico de busca:', error.message);
+        }
     }
 
-    return results; // Retorna os resultados da análise para o frontend
+    return results;
 };
 
 module.exports = {
