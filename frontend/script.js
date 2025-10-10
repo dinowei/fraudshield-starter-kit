@@ -23,11 +23,15 @@ document.addEventListener('DOMContentLoaded', () => {
         fileDropzone = document.getElementById('file-dropzone'),
         fileNameSpan = document.getElementById('file-name'),
         fileResults = document.getElementById('file-results'),
-        // NOVOS SELETORES PARA IP (com a vírgula corrigida)
         ipCheckBtn = document.getElementById('ip-check-btn'),
         ipInput = document.getElementById('ip-input'),
         ipResults = document.getElementById('ip-results'),
-        // SELETORES DE ABAS
+        // ===================================================================
+        // === NOVOS SELETORES PARA EMAIL ADICIONADOS AQUI ===
+        // ===================================================================
+        emailInput = document.getElementById('email-input'),
+        emailCheckBtn = document.getElementById('email-check-btn'),
+        emailResults = document.getElementById('email-results'),
         tabs = document.querySelectorAll('.tab'),
         tabContents = document.querySelectorAll('.tab-content');
 
@@ -35,9 +39,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let selectedFile = null;
 
     // =================================================================
-    // 2. LÓGICA DE AUTENTICAÇÃO E UI (Seu código original, sem alterações )
+    // 2. LÓGICA DE AUTENTICAÇÃO E UI
     // =================================================================
-    // ... (Toda a sua lógica de login, registro, modais, etc., permanece aqui, intacta)
     const showLoggedInState = name => {
         authButtons.style.display = 'none';
         userInfo.style.display = 'flex';
@@ -100,7 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 3. LÓGICA DAS FUNCIONALIDADES DE ANÁLISE
     // =================================================================
 
-    // --- VERIFICAÇÃO DE URL (Seu código original, com uma pequena correção) ---
+    // --- VERIFICAÇÃO DE URL ---
     urlCheckBtn.addEventListener('click', async () => {
         const url = urlInput.value;
         const userToken = localStorage.getItem('token');
@@ -122,7 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- NOVA VERIFICAÇÃO DE IP ---
+    // --- VERIFICAÇÃO DE IP ---
     ipCheckBtn.addEventListener('click', async () => {
         const ip = ipInput.value;
         const userToken = localStorage.getItem('token');
@@ -155,6 +158,46 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // ===================================================================
+    // === NOVA VERIFICAÇÃO DE EMAIL ADICIONADA AQUI ===
+    // ===================================================================
+    emailCheckBtn.addEventListener('click', async () => {
+        const email = emailInput.value.trim();
+        const userToken = localStorage.getItem('token');
+
+        if (!email) {
+            return emailResults.innerHTML = `<p class="error-message">Por favor, insira um endereço de e-mail.</p>`;
+        }
+
+        emailCheckBtn.disabled = true;
+        emailCheckBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verificando...';
+        emailResults.innerHTML = `<p>Analisando: <strong>${email}</strong></p>`;
+
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/check/email`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${userToken}`
+                },
+                body: JSON.stringify({ email })
+            });
+
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.message);
+
+            displayEmailResults(data);
+
+        } catch (error) {
+            console.error('Erro ao verificar e-mail:', error);
+            emailResults.innerHTML = `<div class="error-message">Ocorreu um erro: ${error.message}</div>`;
+        } finally {
+            emailCheckBtn.disabled = false;
+            emailCheckBtn.innerHTML = '<i class="fas fa-search"></i> Verificar E-mail';
+        }
+    });
+
+
     // --- FUNÇÕES DE DISPLAY DE RESULTADOS ---
 
     function displayUrlResults(results) {
@@ -167,7 +210,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const iconClass = r.isSafe ? 'fas fa-check-circle' : 'fas fa-exclamation-triangle';
             let detailsHtml = `<p><i class="${iconClass}"></i> ${r.details}</p>`;
 
-            // Lógica para mostrar o screenshot do URLScan.io
             if (r.source === 'URLScan.io' && !r.isSafe && r.screenshot) {
                 detailsHtml = `
                     <p><i class="${iconClass}"></i> Veredito malicioso encontrado.</p>
@@ -214,8 +256,89 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
     }
 
-    // --- VERIFICAÇÃO DE ARQUIVO (Seu código original, sem alterações) ---
-    // ... (Toda a sua lógica de verificação de arquivo permanece aqui, intacta)
+    // ===================================================================
+    // === NOVA FUNÇÃO PARA EXIBIR RESULTADOS DE EMAIL ADICIONADA AQUI ===
+    // ===================================================================
+    function displayEmailResults(data) {
+        emailResults.innerHTML = `<h3>Análise do E-mail: ${data.email}</h3>`;
+
+        let finalRisk = 'Baixo';
+        let riskReasons = [];
+
+        // Card para resultados do Mailboxlayer
+        const mb = data.mailboxlayer;
+        let mbContent = '';
+        if (mb && !mb.error) {
+            if (mb.disposable) {
+                finalRisk = 'Alto';
+                riskReasons.push('O e-mail é de um provedor descartável.');
+            }
+            if (!mb.smtp_check) {
+                if (finalRisk !== 'Alto') finalRisk = 'Médio';
+                riskReasons.push('A verificação SMTP falhou, o e-mail pode não existir.');
+            }
+
+            mbContent = `
+                <div class="result-card">
+                    <h5><i class="fas fa-shield-alt"></i> Validação Técnica (Mailboxlayer)</h5>
+                    <p><strong>Formato Válido:</strong> ${mb.format_valid ? 'Sim' : 'Não'}</p>
+                    <p><strong>E-mail Descartável:</strong> ${mb.disposable ? '<span class="risk-high">Sim</span>' : 'Não'}</p>
+                    <p><strong>Verificação SMTP:</strong> ${mb.smtp_check ? 'Bem-sucedida' : '<span class="risk-medium">Falhou</span>'}</p>
+                    <p><strong>Score de Qualidade:</strong> ${mb.score * 100}%</p>
+                </div>
+            `;
+        } else {
+            mbContent = `<p>Não foi possível obter dados de validação técnica.</p>`;
+        }
+
+        // Card para resultados do LeakCheck
+        const lc = data.leakcheck;
+        let lcContent = '';
+        if (lc && lc.success) {
+            if (lc.found > 0) {
+                if (finalRisk !== 'Alto') finalRisk = 'Médio';
+                riskReasons.push(`Encontrado em ${lc.found} vazamento(s) de dados.`);
+                lcContent = `
+                    <div class="result-card">
+                        <h5><i class="fas fa-user-secret"></i> Histórico de Vazamentos (LeakCheck)</h5>
+                        <p class="risk-medium"><strong>Encontrado em ${lc.found} vazamento(s):</strong></p>
+                        <ul class="details-list">
+                            ${lc.sources.map(source => `<li>${source.name} (${source.date})</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            } else {
+                lcContent = `
+                    <div class="result-card">
+                        <h5><i class="fas fa-user-secret"></i> Histórico de Vazamentos (LeakCheck)</h5>
+                        <p class="risk-low"><strong>Ótimo!</strong> Este e-mail não foi encontrado em vazamentos conhecidos.</p>
+                    </div>
+                `;
+            }
+        } else if (lc && lc.limit_reached) {
+            lcContent = `<p class="error-message">Limite diário da API de verificação de vazamentos foi atingido.</p>`;
+        } else {
+            lcContent = `<p>Não foi possível obter dados sobre vazamentos.</p>`;
+        }
+
+        // Card de Resumo do Risco
+        let riskClass = 'safe';
+        if (finalRisk === 'Médio') riskClass = 'medium-risk';
+        if (finalRisk === 'Alto') riskClass = 'unsafe';
+
+        let summaryCard = `
+            <div class="result-card ${riskClass}">
+                <h4><i class="fas fa-flag"></i> Resumo do Risco</h4>
+                <p><strong>Nível de Risco Geral:</strong> ${finalRisk}</p>
+                ${riskReasons.length > 0 ? `<ul>${riskReasons.map(r => `<li>${r}</li>`).join('')}</ul>` : '<p>Nenhum indicador de risco significativo encontrado.</p>'}
+            </div>
+        `;
+
+        emailResults.innerHTML += summaryCard + mbContent + lcContent;
+    }
+
+
+    // --- VERIFICAÇÃO DE ARQUIVO ---
     const updateFileUI = file => {
         if (!file) return;
         selectedFile = file;
@@ -271,7 +394,7 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
     }
 
-    // --- LÓGICA DAS ABAS (Seu código original, sem alterações) ---
+    // --- LÓGICA DAS ABAS ---
     tabs.forEach(tab => {
         tab.addEventListener('click', () => {
             tabs.forEach(t => t.classList.remove('active'));

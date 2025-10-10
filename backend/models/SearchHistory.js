@@ -7,11 +7,14 @@ const searchHistorySchema = new mongoose.Schema({
         ref: 'User', // Isso cria um link com o nosso 'userModel.js'
         required: false // Não é obrigatório, pois usuários não logados também podem pesquisar
     },
-    // O tipo de busca realizada ('url', 'file', 'text')
+    // O tipo de busca realizada ('url', 'file', 'text', 'ip', 'email')
     searchType: {
         type: String,
         required: true,
-        enum: ['url', 'file', 'text'] // Só permite esses três valores
+        // ===================================================================
+        // === 'email' ADICIONADO AQUI PARA CORRIGIR O ERRO DE VALIDAÇÃO ===
+        // ===================================================================
+        enum: ['url', 'file', 'text', 'ip', 'email']
     },
     // O conteúdo que foi pesquisado (a URL, o nome do arquivo, etc.)
     query: {
@@ -25,7 +28,7 @@ const searchHistorySchema = new mongoose.Schema({
     },
     // Um resumo dos resultados das APIs
     results: {
-        type: Object, // Usamos um objeto para guardar detalhes flexíveis das APIs
+        type: mongoose.Schema.Types.Mixed,
         required: true
     },
     // A data e hora em que a busca foi realizada

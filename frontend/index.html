@@ -100,6 +100,10 @@
                     <div class="tab" data-tab="ip"><i class="fas fa-network-wired"></i> IP</div>
                     <div class="tab" data-tab="file"><i class="fas fa-file-arrow-up"></i> Arquivo</div>
                     <div class="tab" data-tab="text"><i class="fas fa-file-alt"></i> Texto</div>
+                    <!-- =================================================================== -->
+                    <!-- === NOVA ABA DE EMAIL ADICIONADA AQUI === -->
+                    <!-- =================================================================== -->
+                    <div class="tab" data-tab="email"><i class="fas fa-envelope"></i> Email</div>
                 </div>
 
                 <div id="tab-url" class="tab-content active">
@@ -118,7 +122,7 @@
                     <div class="form-section">
                         <div class="form-group">
                             <label for="ip-input">Analisar Endereço de IP</label>
-                            <input type="text" id="ip-input" placeholder="Digite o endereço de IP (ex: 8.8.8.8 )">
+                            <input type="text" id="ip-input" placeholder="Digite o endereço de IP (ex: 8.8.8.8  )">
                         </div>
                         <button id="ip-check-btn" class="btn btn-primary"><i class="fas fa-search"></i> Verificar
                             IP</button>
@@ -153,6 +157,22 @@
                     </div>
                     <div id="text-results" class="results-area"></div>
                 </div>
+
+                <!-- =================================================================== -->
+                <!-- === NOVO CONTEÚDO DA ABA DE EMAIL ADICIONADO AQUI === -->
+                <!-- =================================================================== -->
+                <div id="tab-email" class="tab-content">
+                    <div class="form-section">
+                        <div class="form-group">
+                            <label for="email-input">Analisar Endereço de E-mail</label>
+                            <input type="email" id="email-input" placeholder="Digite o endereço de e-mail para análise">
+                        </div>
+                        <button id="email-check-btn" class="btn btn-primary"><i class="fas fa-search"></i> Verificar
+                            E-mail</button>
+                    </div>
+                    <div id="email-results" class="results-area"></div>
+                </div>
+
             </div>
         </main>
     </div>
