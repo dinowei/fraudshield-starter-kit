@@ -51,9 +51,7 @@ const checkVirusTotal = async (url) => {
     }
 };
 
-// ===================================================================
-// === FUNÇÃO ATUALIZADA PARA URLSCAN.IO (COM SCREENSHOT) ===
-// ===================================================================
+// FUNÇÃO ATUALIZADA PARA URLSCAN.IO (COM SCREENSHOT) (SEU CÓDIGO ORIGINAL)
 const checkUrlScan = async (url) => {
     const apiKey = process.env.URLSCAN_API_KEY;
     const domain = new URL(url).hostname;
@@ -70,13 +68,12 @@ const checkUrlScan = async (url) => {
             );
 
             if (maliciousScan) {
-                // Retorna um objeto 'details' mais rico com a mensagem e o screenshot
                 return {
                     source: 'URLScan.io',
                     isSafe: false,
                     details: {
                         message: 'Veredito malicioso encontrado em varreduras recentes.',
-                        screenshot: maliciousScan.screenshot // <<< URL DO SCREENSHOT INCLUÍDA
+                        screenshot: maliciousScan.screenshot
                     }
                 };
             }
@@ -89,15 +86,16 @@ const checkUrlScan = async (url) => {
 };
 
 
-// Função principal que orquestra as chamadas E SALVA NO BANCO (ATUALIZADA)
-const checkUrlSecurity = async (url, userId) => {
+// ===================================================================
+// === FUNÇÃO PRINCIPAL ATUALIZADA PARA RECEBER E SALVAR O visitorId ===
+// ===================================================================
+const checkUrlSecurity = async (url, userId, visitorId) => { // <<< 1. visitorId recebido como parâmetro
     console.log(`Iniciando verificação de segurança para: ${url}`);
 
-    // Chama as TRÊS APIs em paralelo
     const results = await Promise.all([
         checkGoogleSafeBrowsing(url),
         checkVirusTotal(url),
-        checkUrlScan(url) // <<< NOVA API ADICIONADA AQUI
+        checkUrlScan(url)
     ]);
 
     const isOverallSafe = results.every(res => res.isSafe === true);
@@ -106,6 +104,7 @@ const checkUrlSecurity = async (url, userId) => {
         try {
             const newHistoryEntry = new SearchHistory({
                 user: userId,
+                visitorId: visitorId, // <<< 2. visitorId adicionado ao registro do histórico
                 searchType: 'url',
                 query: url,
                 isSafe: isOverallSafe,

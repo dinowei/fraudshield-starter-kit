@@ -26,21 +26,55 @@ document.addEventListener('DOMContentLoaded', () => {
         ipCheckBtn = document.getElementById('ip-check-btn'),
         ipInput = document.getElementById('ip-input'),
         ipResults = document.getElementById('ip-results'),
-        // ===================================================================
-        // === NOVOS SELETORES PARA EMAIL ADICIONADOS AQUI ===
-        // ===================================================================
         emailInput = document.getElementById('email-input'),
         emailCheckBtn = document.getElementById('email-check-btn'),
         emailResults = document.getElementById('email-results'),
         tabs = document.querySelectorAll('.tab'),
         tabContents = document.querySelectorAll('.tab-content');
 
-    const API_BASE_URL = 'http://localhost:5000';
-    let selectedFile = null;
+    const documentInput = document.getElementById('document-input');
+    const documentCheckBtn = document.getElementById('document-check-btn');
+    const documentResults = document.getElementById('document-results');
+
+    // ===========================================================
+    // === 1. NOVOS SELETORES PARA TELEFONE ===
+    // ===========================================================
+    const phoneInput = document.getElementById('phone-input');
+    const phoneCheckBtn = document.getElementById('phone-check-btn');
+    const phoneResults = document.getElementById('phone-results');
+
 
     // =================================================================
-    // 2. LÓGICA DE AUTENTICAÇÃO E UI
+    // VARIÁVEIS GLOBAIS
     // =================================================================
+    const API_BASE_URL = 'http://localhost:5000';
+    let selectedFile = null;
+    let visitorId = null;
+
+    // =================================================================
+    // 2. LÓGICA DE INICIALIZAÇÃO E AUTENTICAÇÃO
+    // =================================================================
+    const initializeVisitorId = async () => {
+        try {
+            const fp = await FingerprintJS.load();
+            const result = await fp.get();
+            visitorId = result.visitorId;
+            console.log('FingerprintJS Visitor ID:', visitorId);
+        } catch (error) {
+            console.error('Erro ao inicializar o FingerprintJS:', error);
+            visitorId = 'error-generating-id';
+        }
+    };
+
+    const getVisitorId = async () => {
+        if (!visitorId) {
+            await initializeVisitorId();
+        }
+        return visitorId;
+    };
+
+    initializeVisitorId();
+
     const showLoggedInState = name => {
         authButtons.style.display = 'none';
         userInfo.style.display = 'flex';
@@ -106,14 +140,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- VERIFICAÇÃO DE URL ---
     urlCheckBtn.addEventListener('click', async () => {
         const url = urlInput.value;
-        const userToken = localStorage.getItem('token');
         if (!url) return urlResults.innerHTML = `<p class="error-message">Por favor, insira uma URL.</p>`;
-
         urlCheckBtn.disabled = true;
         urlCheckBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verificando...';
         urlResults.innerHTML = `<p>Analisando: <strong>${url}</strong></p>`;
         try {
-            const res = await fetch(`${API_BASE_URL}/api/check/url`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${userToken}` }, body: JSON.stringify({ url }) });
+            const res = await fetch(`${API_BASE_URL}/api/check/url`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+                body: JSON.stringify({ url, visitorId: await getVisitorId() })
+            });
             const results = await res.json();
             if (!res.ok) throw new Error(results.message);
             displayUrlResults(results);
@@ -128,24 +164,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- VERIFICAÇÃO DE IP ---
     ipCheckBtn.addEventListener('click', async () => {
         const ip = ipInput.value;
-        const userToken = localStorage.getItem('token');
-
-        if (!ip) {
-            return ipResults.innerHTML = `<p class="error-message">Por favor, insira um endereço de IP.</p>`;
-        }
-        if (!/^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(ip)) {
-            return ipResults.innerHTML = `<p class="error-message">Formato de IP inválido.</p>`;
-        }
-
+        if (!ip) return ipResults.innerHTML = `<p class="error-message">Por favor, insira um endereço de IP.</p>`;
+        if (!/^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(ip)) return ipResults.innerHTML = `<p class="error-message">Formato de IP inválido.</p>`;
         ipCheckBtn.disabled = true;
         ipCheckBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verificando...';
         ipResults.innerHTML = `<p>Analisando: <strong>${ip}</strong></p>`;
-
         try {
             const res = await fetch(`${API_BASE_URL}/api/check/ip`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${userToken}` },
-                body: JSON.stringify({ ip })
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+                body: JSON.stringify({ ip, visitorId: await getVisitorId() })
             });
             const result = await res.json();
             if (!res.ok) throw new Error(result.message);
@@ -158,42 +186,116 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // ===================================================================
-    // === NOVA VERIFICAÇÃO DE EMAIL ADICIONADA AQUI ===
-    // ===================================================================
+    // --- VERIFICAÇÃO DE EMAIL ---
     emailCheckBtn.addEventListener('click', async () => {
         const email = emailInput.value.trim();
-        const userToken = localStorage.getItem('token');
-
-        if (!email) {
-            return emailResults.innerHTML = `<p class="error-message">Por favor, insira um endereço de e-mail.</p>`;
-        }
-
+        if (!email) return emailResults.innerHTML = `<p class="error-message">Por favor, insira um endereço de e-mail.</p>`;
         emailCheckBtn.disabled = true;
         emailCheckBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verificando...';
         emailResults.innerHTML = `<p>Analisando: <strong>${email}</strong></p>`;
-
         try {
             const res = await fetch(`${API_BASE_URL}/api/check/email`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${userToken}`
-                },
-                body: JSON.stringify({ email })
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+                body: JSON.stringify({ email, visitorId: await getVisitorId() })
             });
-
             const data = await res.json();
             if (!res.ok) throw new Error(data.message);
-
             displayEmailResults(data);
-
         } catch (error) {
             console.error('Erro ao verificar e-mail:', error);
             emailResults.innerHTML = `<div class="error-message">Ocorreu um erro: ${error.message}</div>`;
         } finally {
             emailCheckBtn.disabled = false;
             emailCheckBtn.innerHTML = '<i class="fas fa-search"></i> Verificar E-mail';
+        }
+    });
+
+    // --- VERIFICAÇÃO DE DOCUMENTO ---
+    documentCheckBtn.addEventListener('click', async () => {
+        const documentValue = documentInput.value.replace(/\D/g, '');
+        if (!documentValue) {
+            documentResults.innerHTML = `<p class="error-message">Por favor, digite um CPF ou CNPJ.</p>`;
+            return;
+        }
+
+        documentCheckBtn.disabled = true;
+        documentCheckBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verificando...';
+        documentResults.innerHTML = `<p>Analisando: <strong>${documentValue}</strong></p>`;
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/check/document`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({
+                    document: documentValue,
+                    visitorId: await getVisitorId()
+                })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Ocorreu um erro na verificação.');
+            }
+
+            showDocumentResults(documentResults, data);
+
+        } catch (error) {
+            documentResults.innerHTML = `<p class="error-message">Erro: ${error.message}</p>`;
+        } finally {
+            documentCheckBtn.disabled = false;
+            documentCheckBtn.innerHTML = '<i class="fas fa-search"></i> Verificar Documento';
+        }
+    });
+
+    // ===========================================================
+    // === 2. LÓGICA PARA VERIFICAÇÃO DE TELEFONE ===
+    // ===========================================================
+    phoneCheckBtn.addEventListener('click', async () => {
+        const phoneValue = phoneInput.value.trim();
+        if (!phoneValue) {
+            phoneResults.innerHTML = `<p class="error-message">Por favor, digite um número de telefone.</p>`;
+            return;
+        }
+
+        if (!/^\+[1-9]\d{1,14}$/.test(phoneValue)) {
+            phoneResults.innerHTML = `<p class="error-message">Formato inválido. Use o padrão internacional (ex: +5511999998888).</p>`;
+            return;
+        }
+
+        phoneCheckBtn.disabled = true;
+        phoneCheckBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verificando...';
+        phoneResults.innerHTML = `<p>Analisando: <strong>${phoneValue}</strong></p>`;
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/check/phone`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({
+                    phone: phoneValue,
+                    visitorId: await getVisitorId()
+                })
+            });
+
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.message);
+            }
+
+            showPhoneResults(phoneResults, data);
+
+        } catch (error) {
+            phoneResults.innerHTML = `<p class="error-message">Erro: ${error.message}</p>`;
+        } finally {
+            phoneCheckBtn.disabled = false;
+            phoneCheckBtn.innerHTML = '<i class="fas fa-search"></i> Verificar Telefone';
         }
     });
 
@@ -209,25 +311,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const cardClass = r.isSafe ? 'result-card safe' : 'result-card unsafe';
             const iconClass = r.isSafe ? 'fas fa-check-circle' : 'fas fa-exclamation-triangle';
             let detailsHtml = `<p><i class="${iconClass}"></i> ${r.details}</p>`;
-
             if (r.source === 'URLScan.io' && !r.isSafe && r.screenshot) {
-                detailsHtml = `
-                    <p><i class="${iconClass}"></i> Veredito malicioso encontrado.</p>
-                    <div class="screenshot-container">
-                        <strong>Screenshot da Página:</strong>
-                        <a href="${r.screenshot}" target="_blank" title="Clique para ampliar">
-                            <img src="${r.screenshot}" alt="Screenshot da página suspeita" style="width:100%; margin-top:10px; border:1px solid #ddd; cursor: pointer;"/>
-                        </a>
-                    </div>
-                `;
+                detailsHtml = `<p><i class="${iconClass}"></i> Veredito malicioso encontrado.</p><div class="screenshot-container"><strong>Screenshot da Página:</strong><a href="${r.screenshot}" target="_blank" title="Clique para ampliar"><img src="${r.screenshot}" alt="Screenshot da página suspeita" style="width:100%; margin-top:10px; border:1px solid #ddd; cursor: pointer;"/></a></div>`;
             }
-
-            urlResults.innerHTML += `
-                <div class="${cardClass}">
-                    <h4>${r.source}</h4>
-                    ${detailsHtml}
-                </div>
-            `;
+            urlResults.innerHTML += `<div class="${cardClass}"><h4>${r.source}</h4>${detailsHtml}</div>`;
         });
     }
 
@@ -236,105 +323,118 @@ document.addEventListener('DOMContentLoaded', () => {
         const isHighRisk = result.isHighRisk;
         const cardClass = isHighRisk ? 'result-card unsafe' : 'result-card safe';
         const iconClass = isHighRisk ? 'fas fa-exclamation-triangle' : 'fas fa-check-circle';
-
-        let detailsHtml = `
-            <p><i class="${iconClass}"></i> <strong>Risco:</strong> ${isHighRisk ? 'Alto' : 'Baixo'}</p>
-            <ul class="details-list">
-                <li><strong>Pontuação de Fraude:</strong> ${result.details.fraudScore} / 100</li>
-                <li><strong>País:</strong> ${result.details.countryCode}</li>
-                <li><strong>É Proxy/VPN:</strong> ${result.details.isProxy ? 'Sim' : 'Não'}</li>
-                <li><strong>É Tor:</strong> ${result.details.isTor ? 'Sim' : 'Não'}</li>
-                <li><strong>Abusos Recentes:</strong> ${result.details.recentAbuse ? 'Sim' : 'Não'}</li>
-            </ul>
-        `;
-
-        ipResults.innerHTML += `
-            <div class="${cardClass}">
-                <h4>${result.source}</h4>
-                ${detailsHtml}
-            </div>
-        `;
+        let detailsHtml = `<p><i class="${iconClass}"></i> <strong>Risco:</strong> ${isHighRisk ? 'Alto' : 'Baixo'}</p><ul class="details-list"><li><strong>Pontuação de Fraude:</strong> ${result.details.fraudScore} / 100</li><li><strong>País:</strong> ${result.details.countryCode}</li><li><strong>É Proxy/VPN:</strong> ${result.details.isProxy ? 'Sim' : 'Não'}</li><li><strong>É Tor:</strong> ${result.details.isTor ? 'Sim' : 'Não'}</li><li><strong>Abusos Recentes:</strong> ${result.details.recentAbuse ? 'Sim' : 'Não'}</li></ul>`;
+        ipResults.innerHTML += `<div class="${cardClass}"><h4>${result.source}</h4>${detailsHtml}</div>`;
     }
 
-    // ===================================================================
-    // === NOVA FUNÇÃO PARA EXIBIR RESULTADOS DE EMAIL ADICIONADA AQUI ===
-    // ===================================================================
     function displayEmailResults(data) {
         emailResults.innerHTML = `<h3>Análise do E-mail: ${data.email}</h3>`;
-
         let finalRisk = 'Baixo';
         let riskReasons = [];
-
-        // Card para resultados do Mailboxlayer
         const mb = data.mailboxlayer;
         let mbContent = '';
         if (mb && !mb.error) {
-            if (mb.disposable) {
-                finalRisk = 'Alto';
-                riskReasons.push('O e-mail é de um provedor descartável.');
-            }
-            if (!mb.smtp_check) {
-                if (finalRisk !== 'Alto') finalRisk = 'Médio';
-                riskReasons.push('A verificação SMTP falhou, o e-mail pode não existir.');
-            }
-
-            mbContent = `
-                <div class="result-card">
-                    <h5><i class="fas fa-shield-alt"></i> Validação Técnica (Mailboxlayer)</h5>
-                    <p><strong>Formato Válido:</strong> ${mb.format_valid ? 'Sim' : 'Não'}</p>
-                    <p><strong>E-mail Descartável:</strong> ${mb.disposable ? '<span class="risk-high">Sim</span>' : 'Não'}</p>
-                    <p><strong>Verificação SMTP:</strong> ${mb.smtp_check ? 'Bem-sucedida' : '<span class="risk-medium">Falhou</span>'}</p>
-                    <p><strong>Score de Qualidade:</strong> ${mb.score * 100}%</p>
-                </div>
-            `;
-        } else {
-            mbContent = `<p>Não foi possível obter dados de validação técnica.</p>`;
-        }
-
-        // Card para resultados do LeakCheck
+            if (mb.disposable) { finalRisk = 'Alto'; riskReasons.push('O e-mail é de um provedor descartável.'); }
+            if (!mb.smtp_check) { if (finalRisk !== 'Alto') finalRisk = 'Médio'; riskReasons.push('A verificação SMTP falhou, o e-mail pode não existir.'); }
+            mbContent = `<div class="result-card"><h5><i class="fas fa-shield-alt"></i> Validação Técnica (Mailboxlayer)</h5><p><strong>Formato Válido:</strong> ${mb.format_valid ? 'Sim' : 'Não'}</p><p><strong>E-mail Descartável:</strong> ${mb.disposable ? '<span class="risk-high">Sim</span>' : 'Não'}</p><p><strong>Verificação SMTP:</strong> ${mb.smtp_check ? 'Bem-sucedida' : '<span class="risk-medium">Falhou</span>'}</p><p><strong>Score de Qualidade:</strong> ${mb.score * 100}%</p></div>`;
+        } else { mbContent = `<p>Não foi possível obter dados de validação técnica.</p>`; }
         const lc = data.leakcheck;
         let lcContent = '';
         if (lc && lc.success) {
             if (lc.found > 0) {
                 if (finalRisk !== 'Alto') finalRisk = 'Médio';
                 riskReasons.push(`Encontrado em ${lc.found} vazamento(s) de dados.`);
-                lcContent = `
-                    <div class="result-card">
-                        <h5><i class="fas fa-user-secret"></i> Histórico de Vazamentos (LeakCheck)</h5>
-                        <p class="risk-medium"><strong>Encontrado em ${lc.found} vazamento(s):</strong></p>
-                        <ul class="details-list">
-                            ${lc.sources.map(source => `<li>${source.name} (${source.date})</li>`).join('')}
-                        </ul>
-                    </div>
-                `;
-            } else {
-                lcContent = `
-                    <div class="result-card">
-                        <h5><i class="fas fa-user-secret"></i> Histórico de Vazamentos (LeakCheck)</h5>
-                        <p class="risk-low"><strong>Ótimo!</strong> Este e-mail não foi encontrado em vazamentos conhecidos.</p>
-                    </div>
-                `;
-            }
-        } else if (lc && lc.limit_reached) {
-            lcContent = `<p class="error-message">Limite diário da API de verificação de vazamentos foi atingido.</p>`;
-        } else {
-            lcContent = `<p>Não foi possível obter dados sobre vazamentos.</p>`;
-        }
-
-        // Card de Resumo do Risco
+                lcContent = `<div class="result-card"><h5><i class="fas fa-user-secret"></i> Histórico de Vazamentos (LeakCheck)</h5><p class="risk-medium"><strong>Encontrado em ${lc.found} vazamento(s):</strong></p><ul class="details-list">${lc.sources.map(source => `<li>${source.name} (${source.date})</li>`).join('')}</ul></div>`;
+            } else { lcContent = `<div class="result-card"><h5><i class="fas fa-user-secret"></i> Histórico de Vazamentos (LeakCheck)</h5><p class="risk-low"><strong>Ótimo!</strong> Este e-mail não foi encontrado em vazamentos conhecidos.</p></div>`; }
+        } else if (lc && lc.limit_reached) { lcContent = `<p class="error-message">Limite diário da API de verificação de vazamentos foi atingido.</p>`; } else { lcContent = `<p>Não foi possível obter dados sobre vazamentos.</p>`; }
         let riskClass = 'safe';
         if (finalRisk === 'Médio') riskClass = 'medium-risk';
         if (finalRisk === 'Alto') riskClass = 'unsafe';
-
-        let summaryCard = `
-            <div class="result-card ${riskClass}">
-                <h4><i class="fas fa-flag"></i> Resumo do Risco</h4>
-                <p><strong>Nível de Risco Geral:</strong> ${finalRisk}</p>
-                ${riskReasons.length > 0 ? `<ul>${riskReasons.map(r => `<li>${r}</li>`).join('')}</ul>` : '<p>Nenhum indicador de risco significativo encontrado.</p>'}
-            </div>
-        `;
-
+        let summaryCard = `<div class="result-card ${riskClass}"><h4><i class="fas fa-flag"></i> Resumo do Risco</h4><p><strong>Nível de Risco Geral:</strong> ${finalRisk}</p>${riskReasons.length > 0 ? `<ul>${riskReasons.map(r => `<li>${r}</li>`).join('')}</ul>` : '<p>Nenhum indicador de risco significativo encontrado.</p>'}</div>`;
         emailResults.innerHTML += summaryCard + mbContent + lcContent;
+    }
+
+    function showDocumentResults(container, data) {
+        container.innerHTML = '';
+        if (!data.isSafe || !data.details) {
+            const errorHTML = `<div class="result-item high-risk"><div class="result-header"><i class="fas fa-times-circle"></i><h4>Inválido ou Não Encontrado</h4></div><div class="result-details"><p>${data.message || 'A consulta não retornou um resultado válido.'}</p></div></div>`;
+            container.innerHTML = errorHTML;
+            return;
+        }
+        const details = data.details;
+        let resultHTML = `<div class="result-item safe"><div class="result-header"><i class="fas fa-check-circle"></i><h4>Documento Válido</h4></div><div class="result-details"><p><strong>Fonte da Consulta:</strong> ${data.source || 'N/A'}</p></div></div><div class="result-table-container"><h4><i class="fas fa-building"></i> Dados Cadastrais</h4><table class="result-table">`;
+        if (details.razao_social) { resultHTML += `<tr><td>Razão Social</td><td>${details.razao_social}</td></tr>`; }
+        if (details.nome_fantasia) { resultHTML += `<tr><td>Nome Fantasia</td><td>${details.nome_fantasia || 'Não informado'}</td></tr>`; }
+        if (details.cnpj) { resultHTML += `<tr><td>CNPJ</td><td>${details.cnpj}</td></tr>`; }
+        if (details.data_inicio_atividade) { resultHTML += `<tr><td>Início da Atividade</td><td>${details.data_inicio_atividade}</td></tr>`; }
+        if (details.descricao_situacao_cadastral) {
+            const statusClass = details.descricao_situacao_cadastral === 'ATIVA' ? 'status-active' : 'status-inactive';
+            resultHTML += `<tr><td>Situação Cadastral</td><td><span class="${statusClass}">${details.descricao_situacao_cadastral}</span></td></tr>`;
+        }
+        const endereco = `${details.logradouro || ''}, ${details.numero || ''} - ${details.bairro || ''}, ${details.municipio || ''} - ${details.uf || ''}, CEP: ${details.cep || ''}`;
+        resultHTML += `<tr><td>Endereço</td><td>${endereco}</td></tr>`;
+        if (details.ddd_telefone_1) { resultHTML += `<tr><td>Telefone</td><td>${details.ddd_telefone_1}</td></tr>`; }
+        resultHTML += `</table></div>`;
+        container.innerHTML = resultHTML;
+    }
+
+    // ===========================================================
+    // === 3. FUNÇÃO PARA EXIBIR RESULTADOS DE TELEFONE ===
+    // ===========================================================
+    function showPhoneResults(container, data) {
+        const details = data.details;
+        let resultHTML = '';
+
+        if (details.isValid) {
+            resultHTML = `
+                <div class="result-item safe">
+                    <div class="result-header">
+                        <i class="fas fa-check-circle"></i>
+                        <h4>Telefone Válido</h4>
+                    </div>
+                </div>
+                <div class="result-table-container">
+                    <h4><i class="fas fa-info-circle"></i> Detalhes do Número</h4>
+                    <table class="result-table">
+                        <tbody>
+                            <tr>
+                                <td>Número Internacional</td>
+                                <td>${details.phoneNumber || 'N/A'}</td>
+                            </tr>
+                            <tr>
+                                <td>Formato Nacional</td>
+                                <td>${details.nationalFormat || 'N/A'}</td>
+                            </tr>
+                            <tr>
+                                <td>País</td>
+                                <td>${details.countryCode || 'N/A'}</td>
+                            </tr>
+                            <tr>
+                                <td>Operadora</td>
+                                <td>${details.carrierName || 'Informação não disponível'}</td>
+                            </tr>
+                            <tr>
+                                <td>Tipo de Linha</td>
+                                <td>${details.lineType || 'Informação não disponível'}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        } else {
+            resultHTML = `
+                <div class="result-item high-risk">
+                    <div class="result-header">
+                        <i class="fas fa-times-circle"></i>
+                        <h4>Telefone Inválido ou Não Encontrado</h4>
+                    </div>
+                    <div class="result-details">
+                        <p>${data.message || 'A verificação falhou. Verifique o número e o formato.'}</p>
+                    </div>
+                </div>
+            `;
+        }
+        container.innerHTML = resultHTML;
     }
 
 
@@ -361,6 +461,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!userToken) { openModal('loginModal'); return fileResults.innerHTML = `<p class="error-message">Faça login para verificar.</p>`; }
         const formData = new FormData();
         formData.append('file', selectedFile);
+        formData.append('visitorId', await getVisitorId());
         fileCheckBtn.disabled = true;
         fileCheckBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verificando...';
         fileResults.innerHTML = `<p>Analisando: <strong>${selectedFile.name}</strong></p>`;
@@ -381,17 +482,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const isSafe = result.isSafe;
         const cardClass = isSafe ? 'result-card safe' : 'result-card unsafe';
         const iconClass = isSafe ? 'fas fa-check-circle' : 'fas fa-exclamation-triangle';
-        fileResults.innerHTML += `
-            <div class="${cardClass}">
-                <h4>${result.source}</h4>
-                <p><i class="${iconClass}"></i> ${result.details}</p>
-                <ul class="file-stats">
-                    <li>Maliciosos: <strong>${result.stats.malicious}</strong></li>
-                    <li>Suspeitos: <strong>${result.stats.suspicious}</strong></li>
-                    <li>Inofensivos: <strong>${result.stats.harmless}</strong></li>
-                </ul>
-            </div>
-        `;
+        fileResults.innerHTML += `<div class="${cardClass}"><h4>${result.source}</h4><p><i class="${iconClass}"></i> ${result.details}</p><ul class="file-stats"><li>Maliciosos: <strong>${result.stats.malicious}</strong></li><li>Suspeitos: <strong>${result.stats.suspicious}</strong></li><li>Inofensivos: <strong>${result.stats.harmless}</strong></li></ul></div>`;
     }
 
     // --- LÓGICA DAS ABAS ---

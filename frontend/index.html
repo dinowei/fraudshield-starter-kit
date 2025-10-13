@@ -100,10 +100,12 @@
                     <div class="tab" data-tab="ip"><i class="fas fa-network-wired"></i> IP</div>
                     <div class="tab" data-tab="file"><i class="fas fa-file-arrow-up"></i> Arquivo</div>
                     <div class="tab" data-tab="text"><i class="fas fa-file-alt"></i> Texto</div>
-                    <!-- =================================================================== -->
-                    <!-- === NOVA ABA DE EMAIL ADICIONADA AQUI === -->
-                    <!-- =================================================================== -->
                     <div class="tab" data-tab="email"><i class="fas fa-envelope"></i> Email</div>
+                    <div class="tab" data-tab="document"><i class="fas fa-id-card"></i> Documento</div>
+                    <!-- =================================================================== -->
+                    <!-- === NOVA ABA DE TELEFONE ADICIONADA AQUI === -->
+                    <!-- =================================================================== -->
+                    <div class="tab" data-tab="phone"><i class="fas fa-phone"></i> Telefone</div>
                 </div>
 
                 <div id="tab-url" class="tab-content active">
@@ -158,9 +160,6 @@
                     <div id="text-results" class="results-area"></div>
                 </div>
 
-                <!-- =================================================================== -->
-                <!-- === NOVO CONTEÚDO DA ABA DE EMAIL ADICIONADO AQUI === -->
-                <!-- =================================================================== -->
                 <div id="tab-email" class="tab-content">
                     <div class="form-section">
                         <div class="form-group">
@@ -173,11 +172,50 @@
                     <div id="email-results" class="results-area"></div>
                 </div>
 
+                <div id="tab-document" class="tab-content">
+                    <div class="form-section">
+                        <div class="form-group">
+                            <label for="document-input">Analisar CPF ou CNPJ</label>
+                            <input type="text" id="document-input" placeholder="Digite o CPF ou CNPJ (apenas números)">
+                        </div>
+                        <button id="document-check-btn" class="btn btn-primary"><i class="fas fa-search"></i> Verificar
+                            Documento</button>
+                    </div>
+                    <div id="document-results" class="results-area"></div>
+                </div>
+
+                <!-- =================================================================== -->
+                <!-- === NOVO PAINEL DE CONTEÚDO PARA TELEFONE ADICIONADO AQUI === -->
+                <!-- =================================================================== -->
+                <div id="tab-phone" class="tab-content">
+                    <div class="form-section">
+                        <div class="form-group">
+                            <label for="phone-input">Analisar Número de Telefone</label>
+                            <input type="tel" id="phone-input" placeholder="Ex: +5511999998888">
+                            <small style="color: var(--text-muted); margin-top: 5px; display: block;">
+                                Use o formato internacional E.164 (código do país + código de área + número).
+                            </small>
+                        </div>
+                        <button id="phone-check-btn" class="btn btn-primary">
+                            <i class="fas fa-search"></i> Verificar Telefone
+                        </button>
+                    </div>
+                    <div id="phone-results" class="results-area"></div>
+                </div>
+
             </div>
         </main>
     </div>
 
+    <!-- =================================================================== -->
+    <!-- === SCRIPTS EXTERNOS === -->
+    <!-- =================================================================== -->
     <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
+
+    <!-- SCRIPT DO FINGERPRINTJS ADICIONADO AQUI -->
+    <script src="https://cdn.jsdelivr.net/npm/@fingerprintjs/fingerprintjs@3/dist/fp.min.js"></script>
+
+    <!-- SEU SCRIPT PRINCIPAL (DEVE SER O ÚLTIMO   ) -->
     <script src="script.js"></script>
 </body>
 

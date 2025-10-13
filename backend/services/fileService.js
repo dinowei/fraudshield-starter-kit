@@ -2,7 +2,10 @@ const axios = require('axios');
 const FormData = require('form-data');
 const SearchHistory = require('../models/SearchHistory');
 
-const checkFileSecurity = async (file, userId) => {
+// ===================================================================
+// === FUNÇÃO ATUALIZADA PARA RECEBER E SALVAR O visitorId ===
+// ===================================================================
+const checkFileSecurity = async (file, userId, visitorId) => { // <<< 1. visitorId recebido como parâmetro
     const apiKey = process.env.VIRUSTOTAL_API_KEY;
     const apiUrl = 'https://www.virustotal.com/api/v3/files';
 
@@ -21,6 +24,7 @@ const checkFileSecurity = async (file, userId) => {
         const reportUrl = `https://www.virustotal.com/api/v3/analyses/${analysisId}`;
 
         // A análise de arquivos pode demorar. Vamos esperar 30 segundos.
+        // NOTA: Em uma aplicação de produção, o ideal seria usar um sistema de polling mais inteligente ou webhooks.
         await new Promise(resolve => setTimeout(resolve, 30000));
 
         const reportResponse = await axios.get(reportUrl, {
@@ -40,19 +44,22 @@ const checkFileSecurity = async (file, userId) => {
             stats: stats,
         };
 
-        // Salva o resultado no histórico
-        try {
-            const newHistoryEntry = new SearchHistory({
-                user: userId,
-                searchType: 'file',
-                query: file.originalname,
-                isSafe: isSafe,
-                results: [resultDetails],
-            });
-            await newHistoryEntry.save();
-            console.log('Histórico de análise de arquivo salvo com sucesso!');
-        } catch (dbError) {
-            console.error('Erro ao salvar histórico do arquivo:', dbError.message);
+        // Salva o resultado no histórico (se o usuário estiver logado)
+        if (userId) { // Adicionado um 'if' para garantir que só salve se houver userId
+            try {
+                const newHistoryEntry = new SearchHistory({
+                    user: userId,
+                    visitorId: visitorId, // <<< 2. visitorId adicionado ao registro do histórico
+                    searchType: 'file',
+                    query: file.originalname,
+                    isSafe: isSafe,
+                    results: [resultDetails],
+                });
+                await newHistoryEntry.save();
+                console.log('Histórico de análise de arquivo salvo com sucesso!');
+            } catch (dbError) {
+                console.error('Erro ao salvar histórico do arquivo:', dbError.message);
+            }
         }
 
         return resultDetails;

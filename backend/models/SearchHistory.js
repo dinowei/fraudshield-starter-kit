@@ -4,24 +4,29 @@ const searchHistorySchema = new mongoose.Schema({
     // Referência ao usuário que fez a busca (se ele estiver logado)
     user: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User', // Isso cria um link com o nosso 'userModel.js'
-        required: false // Não é obrigatório, pois usuários não logados também podem pesquisar
+        ref: 'User',
+        required: false
     },
-    // O tipo de busca realizada ('url', 'file', 'text', 'ip', 'email')
+    // A impressão digital do dispositivo que realizou a busca.
+    visitorId: {
+        type: String,
+        required: false
+    },
+    // O tipo de busca realizada
     searchType: {
         type: String,
         required: true,
         // ===================================================================
-        // === 'email' ADICIONADO AQUI PARA CORRIGIR O ERRO DE VALIDAÇÃO ===
+        // === 'phone' ADICIONADO AQUI PARA PERMITIR O NOVO HISTÓRICO ===
         // ===================================================================
-        enum: ['url', 'file', 'text', 'ip', 'email']
+        enum: ['url', 'file', 'text', 'ip', 'email', 'document', 'phone']
     },
-    // O conteúdo que foi pesquisado (a URL, o nome do arquivo, etc.)
+    // O conteúdo que foi pesquisado
     query: {
         type: String,
         required: true
     },
-    // O resultado da análise (se foi seguro ou não)
+    // O resultado da análise
     isSafe: {
         type: Boolean,
         required: true
