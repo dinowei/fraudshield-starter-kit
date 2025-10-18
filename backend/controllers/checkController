@@ -1,0 +1,157 @@
+// backend/controllers/checkController.js
+
+const { validationResult } = require('express-validator');
+const { checkUrlSecurity } = require('../services/urlService');
+const { checkTextSecurity } = require('../services/textService');
+const { checkFileSecurity } = require('../services/fileService');
+const { checkIpRisk } = require('../services/ipService');
+const { checkMailboxlayer, checkLeakCheck } = require('../services/EmailService');
+const documentService = require('../services/documentService');
+const phoneService = require('../services/phoneService');
+const SearchHistory = require('../models/SearchHistory');
+const logger = require('../utils/logger');
+
+// MELHORIA 1: Função auxiliar para centralizar a validação
+const handleValidation = (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        res.status(400).json({ errors: errors.array() });
+        return false;
+    }
+    return true;
+};
+
+// Sua função auxiliar de histórico já está ótima
+const saveHistory = async (userId, visitorId, searchType, query, isSafe, results) => {
+    if (!userId && !visitorId) return;
+    try {
+        await new SearchHistory({
+            user: userId || null, visitorId, searchType, query, isSafe, results
+        }).save();
+        logger.info(`Histórico de ${searchType} salvo para a query: ${query}`);
+    } catch (error) {
+        logger.error(`Erro ao salvar histórico de ${searchType}:`, error.message);
+    }
+};
+
+// --- Controladores Refatorados ---
+
+const checkUrl = async (req, res, next) => {
+    // A validação agora é feita aqui, de forma padronizada
+    if (!handleValidation(req, res)) return;
+
+    const { url, visitorId } = req.body;
+    const userId = req.user?.id || null;
+    try {
+        logger.info(`Iniciando verificação de URL para: ${url}`);
+        const results = await checkUrlSecurity(url, userId, visitorId);
+        res.json(results);
+    } catch (error) {
+        logger.error('Erro ao verificar URL:', error);
+        next(error); // Erros inesperados são enviados para o handler central
+    }
+};
+
+const checkIp = async (req, res, next) => {
+    if (!handleValidation(req, res)) return;
+
+    const { ip, visitorId } = req.body;
+    const userId = req.user?.id || null;
+    try {
+        logger.info(`Iniciando verificação de risco para o IP: ${ip}`);
+        const result = await checkIpRisk(ip, userId);
+        await saveHistory(userId, visitorId, 'ip', ip, !result.isHighRisk, [result]);
+        res.json(result);
+    } catch (error) {
+        logger.error('Erro ao verificar IP:', error);
+        next(error);
+    }
+};
+
+const checkText = (req, res, next) => {
+    if (!handleValidation(req, res)) return;
+
+    const { text } = req.body;
+    logger.info('Iniciando análise de texto.');
+    const result = checkTextSecurity(text);
+    res.json(result);
+};
+
+const checkFile = async (req, res, next) => {
+    // A validação de arquivo é um caso especial, feita pelo multer, então mantemos a verificação
+    if (!req.file) return res.status(400).json({ message: 'Nenhum arquivo enviado.' });
+
+    const { visitorId } = req.body;
+    const userId = req.user?.id || null;
+    try {
+        logger.info(`Iniciando análise do arquivo: ${req.file.originalname}`);
+        const result = await checkFileSecurity(req.file, userId, visitorId);
+        res.json(result);
+    } catch (error) {
+        logger.error('Erro ao analisar arquivo:', error);
+        next(error);
+    }
+};
+
+const checkEmail = async (req, res, next) => {
+    if (!handleValidation(req, res)) return;
+
+    const { email, visitorId } = req.body;
+    const userId = req.user?.id || null;
+    try {
+        logger.info(`Iniciando verificação de risco para o e-mail: ${email}`);
+        const [mailboxlayerResult, leakcheckResult] = await Promise.all([
+            checkMailboxlayer(email),
+            checkLeakCheck(email)
+        ]);
+        const finalResult = { email, mailboxlayer: mailboxlayerResult, leakcheck: leakcheckResult };
+        await saveHistory(userId, visitorId, 'email', email, mailboxlayerResult.disposable === false, [finalResult]);
+        res.json(finalResult);
+    } catch (error) {
+        logger.error('Erro ao verificar e-mail:', error);
+        next(error); // MELHORIA 2: Padronizando o erro 500
+    }
+};
+
+const checkDocument = async (req, res, next) => {
+    if (!handleValidation(req, res)) return;
+
+    const { document, visitorId } = req.body;
+    const userId = req.user?.id || null;
+    try {
+        const result = await documentService.checkDocument(document);
+        await saveHistory(userId, visitorId, 'document', document, result.isSafe, {
+            source: result.source, details: result.details
+        });
+        res.json(result);
+    } catch (error) {
+        logger.error('Erro ao verificar documento:', error.message);
+        // MELHORIA 3: Tratando erros de negócio (ex: CPF inválido) vs erros de servidor
+        if (error.statusCode) {
+            return res.status(error.statusCode).json({ message: error.message });
+        }
+        next(error); // Erros inesperados (ex: falha de conexão) vão para o handler 500
+    }
+};
+
+const checkPhone = async (req, res, next) => {
+    if (!handleValidation(req, res)) return;
+
+    const { phone, visitorId } = req.body;
+    const userId = req.user?.id || null;
+    try {
+        const result = await phoneService.checkPhoneNumber(phone);
+        await saveHistory(userId, visitorId, 'phone', phone, result.isSafe, result);
+        res.json(result);
+    } catch (error) {
+        logger.error('Erro ao verificar telefone:', error.message);
+        if (error.statusCode) {
+            return res.status(error.statusCode).json({ message: error.message });
+        }
+        next(error);
+    }
+};
+
+module.exports = {
+    checkUrl, checkIp, checkText, checkFile, checkEmail, checkDocument, checkPhone,
+};
