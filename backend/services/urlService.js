@@ -1,9 +1,8 @@
-// Caminho do arquivo: backend/services/urlService.js
+// Caminho: backend/services/urlService.js (Versão Limpa Final)
 
 const axios = require('axios');
 const SearchHistory = require('../models/SearchHistory');
 
-// Função para chamar a API do Google Safe Browsing (SEU CÓDIGO ORIGINAL)
 const checkGoogleSafeBrowsing = async (url) => {
     const apiKey = process.env.GOOGLE_SAFE_BROWSING_API_KEY;
     const apiUrl = `https://safebrowsing.googleapis.com/v4/threatMatches:find?key=${apiKey}`;
@@ -23,11 +22,10 @@ const checkGoogleSafeBrowsing = async (url) => {
         return { source: 'Google Safe Browsing', isSafe: true, details: 'Nenhuma ameaça encontrada.' };
     } catch (error) {
         console.error('Erro ao chamar Google Safe Browsing:', error.message);
-        return { source: 'Google Safe Browsing', error: 'Não foi possível verificar com o Google.' };
+        return { source: 'Google Safe Browsing', isSafe: false, details: 'Não foi possível verificar com o Google.' };
     }
 };
 
-// Função para chamar a API do VirusTotal (SEU CÓDIGO ORIGINAL)
 const checkVirusTotal = async (url) => {
     const apiKey = process.env.VIRUSTOTAL_API_KEY;
     const apiUrl = `https://www.virustotal.com/api/v3/urls`;
@@ -47,49 +45,41 @@ const checkVirusTotal = async (url) => {
         return { source: 'VirusTotal', isSafe: true, details: 'Nenhuma ameaça encontrada.' };
     } catch (error) {
         console.error('Erro ao chamar VirusTotal:', error.response ? error.response.data : error.message);
-        return { source: 'VirusTotal', error: 'Não foi possível verificar com o VirusTotal.' };
+        return { source: 'VirusTotal', isSafe: false, details: 'Não foi possível verificar com o VirusTotal.' };
     }
 };
 
-// FUNÇÃO ATUALIZADA PARA URLSCAN.IO (COM SCREENSHOT) (SEU CÓDIGO ORIGINAL)
 const checkUrlScan = async (url) => {
     const apiKey = process.env.URLSCAN_API_KEY;
-    const domain = new URL(url).hostname;
-    const apiUrl = `https://urlscan.io/api/v1/search/?q=domain:${domain}`;
+    const apiUrl = 'https://urlscan.io/api/v1/scan/';
 
     try {
-        const { data } = await axios.get(apiUrl, {
-            headers: { 'API-Key': apiKey }
+        const submissionResponse = await axios.post(apiUrl, {
+            url: url,
+            visibility: 'public'
+        }, {
+            headers: {
+                'API-Key': apiKey,
+                'Content-Type': 'application/json'
+            }
         });
 
-        if (data.results && data.results.length > 0) {
-            const maliciousScan = data.results.find(
-                result => result.verdicts?.overall?.malicious
-            );
-
-            if (maliciousScan) {
-                return {
-                    source: 'URLScan.io',
-                    isSafe: false,
-                    details: {
-                        message: 'Veredito malicioso encontrado em varreduras recentes.',
-                        screenshot: maliciousScan.screenshot
-                    }
-                };
-            }
+        if (submissionResponse.data && submissionResponse.data.result) {
+            return {
+                source: 'URLScan.io',
+                isSafe: true,
+                details: `Análise submetida. Resultado em: ${submissionResponse.data.result}`
+            };
         }
-        return { source: 'URLScan.io', isSafe: true, details: 'Nenhuma varredura recente com veredito malicioso.' };
+        return { source: 'URLScan.io', isSafe: false, details: 'Falha ao submeter URL para análise.' };
+
     } catch (error) {
-        console.error('Erro no URLScan.io:', error.message);
-        return { source: 'URLScan.io', error: 'Não foi possível verificar com o URLScan.io.' };
+        console.error('Erro no URLScan.io:', error.response ? error.response.data.message : error.message);
+        return { source: 'URLScan.io', isSafe: false, details: error.response ? error.response.data.message : 'Não foi possível verificar com o URLScan.io.' };
     }
 };
 
-
-// ===================================================================
-// === FUNÇÃO PRINCIPAL ATUALIZADA PARA RECEBER E SALVAR O visitorId ===
-// ===================================================================
-const checkUrlSecurity = async (url, userId, visitorId) => { // <<< 1. visitorId recebido como parâmetro
+const checkUrlSecurity = async (url, userId, visitorId) => {
     console.log(`Iniciando verificação de segurança para: ${url}`);
 
     const results = await Promise.all([
@@ -104,7 +94,7 @@ const checkUrlSecurity = async (url, userId, visitorId) => { // <<< 1. visitorId
         try {
             const newHistoryEntry = new SearchHistory({
                 user: userId,
-                visitorId: visitorId, // <<< 2. visitorId adicionado ao registro do histórico
+                visitorId: visitorId,
                 searchType: 'url',
                 query: url,
                 isSafe: isOverallSafe,

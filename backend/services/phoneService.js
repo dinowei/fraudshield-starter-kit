@@ -1,9 +1,7 @@
 // Arquivo: backend/services/phoneService.js
 
-// 1. Importa as variáveis de ambiente e a biblioteca do Twilio
-const accountSid = process.env.TWILIO_ACCOUNT_SID;
-const authToken = process.env.TWILIO_AUTH_TOKEN;
-const client = require('twilio')(accountSid, authToken);
+// 1. Importa a biblioteca do Twilio
+const twilio = require('twilio');
 
 /**
  * Verifica um número de telefone usando a API Twilio Lookup.
@@ -12,6 +10,15 @@ const client = require('twilio')(accountSid, authToken);
  */
 async function checkPhoneNumber(phoneNumber) {
     console.log(`Iniciando verificação de telefone para: ${phoneNumber}`);
+
+    // ===================================================================
+    // === MODIFICAÇÃO APLICADA AQUI ===
+    // Movemos a leitura das credenciais e a inicialização do cliente
+    // para DENTRO da função. Isso garante que as credenciais mais
+    // recentes do .env sejam usadas a cada chamada.
+    // ===================================================================
+    const accountSid = process.env.TWILIO_ACCOUNT_SID;
+    const authToken = process.env.TWILIO_AUTH_TOKEN;
 
     // Validação básica de entrada
     if (!accountSid || !authToken) {
@@ -23,18 +30,23 @@ async function checkPhoneNumber(phoneNumber) {
         throw new Error('Número de telefone é obrigatório.');
     }
 
+    // Adicionamos um log de depuração para ter 100% de certeza
+    console.log('--- DEBUG TWILIO ---');
+    console.log('Usando Account SID:', accountSid);
+    console.log('Usando Auth Token:', authToken ? authToken.substring(0, 4) + '...' : 'NÃO ENCONTRADO'); // Mostra só o início do token por segurança
+    console.log('--------------------');
+
+    // Inicializa o cliente AQUI, a cada chamada
+    const client = twilio(accountSid, authToken);
+
     try {
-        // ===================================================================
-        // === MODIFICAÇÃO APLICADA AQUI ===
-        // Adicionamos o parâmetro 'fields' para solicitar os dados da operadora.
-        // ===================================================================
         const phoneData = await client.lookups.v2.phoneNumbers(phoneNumber).fetch({ fields: 'line_type_intelligence' });
 
         console.log('Telefone verificado com sucesso pelo Twilio.');
 
-        // 3. Formata a resposta para o nosso padrão
+        // Formata a resposta
         const result = {
-            isSafe: true, // Consideramos "safe" se o número for válido
+            isSafe: true,
             source: 'Twilio Lookup',
             details: {
                 phoneNumber: phoneData.phoneNumber,
@@ -45,10 +57,9 @@ async function checkPhoneNumber(phoneNumber) {
             }
         };
 
-        // A API PODE retornar informações da operadora, se disponíveis
         if (phoneData.lineTypeIntelligence) {
             result.details.carrierName = phoneData.lineTypeIntelligence.carrier_name;
-            result.details.lineType = phoneData.lineTypeIntelligence.type; // ex: mobile, landline, voip
+            result.details.lineType = phoneData.lineTypeIntelligence.type;
         }
 
         return result;
@@ -56,11 +67,9 @@ async function checkPhoneNumber(phoneNumber) {
     } catch (error) {
         console.error('Erro ao consultar a API do Twilio:', error.message);
 
-        // Personaliza a mensagem de erro para o usuário
         if (error.status === 404) {
             throw new Error('O número de telefone não foi encontrado ou é inválido.');
         }
-        // Outros erros (credenciais inválidas, etc.)
         throw new Error('Falha na comunicação com o serviço de verificação de telefone.');
     }
 }
