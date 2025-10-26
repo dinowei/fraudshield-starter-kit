@@ -16,7 +16,7 @@ const CONFIG = {
 
         // Production (Vercel)
         if (hostname.includes('vercel.app') || hostname === 'fraudguard.vercel.app') {
-            return 'https://fraudshield-starter-kit.onrender.com';
+            return 'https://fraudguard-backend-j9gy.onrender.com'; // ✅ CORRIGIDO
         }
 
         // Local development
@@ -25,14 +25,14 @@ const CONFIG = {
         }
 
         // Fallback to production
-        return 'https://fraudshield-starter-kit.onrender.com';
+        return 'https://fraudguard-backend-j9gy.onrender.com'; // ✅ CORRIGIDO
     })(),
 
     // Request timeouts
     TIMEOUT: {
-        SHORT: 5000,   // 5 seconds
-        MEDIUM: 10000, // 10 seconds
-        LONG: 30000    // 30 seconds
+        SHORT: 5000,
+        MEDIUM: 10000,
+        LONG: 30000
     },
 
     // Validation patterns
@@ -95,7 +95,6 @@ const State = {
 // ============================================================================
 
 const DOM = {
-    // Authentication
     loginButton: null,
     registerButton: null,
     logoutButton: null,
@@ -110,44 +109,36 @@ const DOM = {
     loginForm: null,
     loginMessage: null,
 
-    // URL Check
     urlCheckBtn: null,
     urlInput: null,
     urlResults: null,
 
-    // IP Check
     ipCheckBtn: null,
     ipInput: null,
     ipResults: null,
 
-    // Email Check
     emailInput: null,
     emailCheckBtn: null,
     emailResults: null,
 
-    // Document Check
     documentInput: null,
     documentCheckBtn: null,
     documentResults: null,
 
-    // Phone Check
     phoneInput: null,
     phoneCheckBtn: null,
     phoneResults: null,
 
-    // File Check
     fileCheckBtn: null,
     fileInput: null,
     fileDropzone: null,
     fileNameSpan: null,
     fileResults: null,
 
-    // Tabs
     tabs: null,
     tabContents: null,
 
     initialize() {
-        // Authentication elements
         this.loginButton = document.getElementById('login-button');
         this.registerButton = document.getElementById('register-button');
         this.logoutButton = document.getElementById('logout-button');
@@ -162,7 +153,6 @@ const DOM = {
         this.loginForm = document.getElementById('loginForm');
         this.loginMessage = document.getElementById('login-message');
 
-        // Check elements
         this.urlCheckBtn = document.getElementById('url-check-btn');
         this.urlInput = document.getElementById('url-input');
         this.urlResults = document.getElementById('url-results');
@@ -199,9 +189,6 @@ const DOM = {
 // ============================================================================
 
 const API = {
-    /**
-     * Generic API request handler with timeout and error handling
-     */
     async request(endpoint, options = {}, timeout = CONFIG.TIMEOUT.MEDIUM) {
         const url = `${CONFIG.API_BASE_URL}${endpoint}`;
         const token = localStorage.getItem('token');
@@ -249,9 +236,6 @@ const API = {
         }
     },
 
-    /**
-     * File upload request handler
-     */
     async uploadFile(endpoint, formData, timeout = CONFIG.TIMEOUT.LONG) {
         const url = `${CONFIG.API_BASE_URL}${endpoint}`;
         const token = localStorage.getItem('token');
@@ -354,7 +338,6 @@ const Auth = {
             password: formData.get('password')
         };
 
-        // Validate hCaptcha
         if (typeof hcaptcha !== 'undefined') {
             const hcaptchaResponse = hcaptcha.getResponse();
             if (!hcaptchaResponse) {
@@ -444,7 +427,6 @@ const Modal = {
     },
 
     setupCloseHandlers() {
-        // Close button handlers
         DOM.closeButtons?.forEach(btn => {
             btn.addEventListener('click', () => {
                 Modal.close('loginModal');
@@ -452,7 +434,6 @@ const Modal = {
             });
         });
 
-        // Click outside to close
         window.addEventListener('click', (e) => {
             if (e.target === DOM.loginModal) Modal.close('loginModal');
             if (e.target === DOM.registerModal) Modal.close('registerModal');
@@ -465,7 +446,6 @@ const Modal = {
 // ============================================================================
 
 const Checks = {
-    // URL Check
     async url() {
         const url = DOM.urlInput.value.trim();
 
@@ -493,7 +473,6 @@ const Checks = {
         }
     },
 
-    // IP Check
     async ip() {
         const ip = DOM.ipInput.value.trim();
 
@@ -526,7 +505,6 @@ const Checks = {
         }
     },
 
-    // Email Check
     async email() {
         const email = DOM.emailInput.value.trim();
 
@@ -554,7 +532,6 @@ const Checks = {
         }
     },
 
-    // Document Check (CPF/CNPJ)
     async document() {
         const documentValue = DOM.documentInput.value.replace(/\D/g, '');
 
@@ -582,7 +559,6 @@ const Checks = {
         }
     },
 
-    // Phone Check
     async phone() {
         const phoneValue = DOM.phoneInput.value.trim();
 
@@ -615,7 +591,6 @@ const Checks = {
         }
     },
 
-    // File Check
     async file() {
         if (!State.selectedFile) {
             alert('Nenhum arquivo selecionado.');
@@ -668,25 +643,10 @@ const Renderers = {
             let detailsHtml = `<p><i class="${iconClass}"></i> ${r.details}</p>`;
 
             if (r.source === 'URLScan.io' && !r.isSafe && r.screenshot) {
-                detailsHtml = `
-                    <p><i class="${iconClass}"></i> Veredito malicioso encontrado.</p>
-                    <div class="screenshot-container">
-                        <strong>Screenshot da Página:</strong>
-                        <a href="${r.screenshot}" target="_blank" rel="noopener noreferrer" title="Clique para ampliar">
-                            <img src="${r.screenshot}" alt="Screenshot da página suspeita" 
-                                 style="width:100%; margin-top:10px; border:1px solid #ddd; cursor: pointer;" 
-                                 loading="lazy"/>
-                        </a>
-                    </div>
-                `;
+                detailsHtml = `<p><i class="${iconClass}"></i> Veredito malicioso encontrado.</p><div class="screenshot-container"><strong>Screenshot da Página:</strong><a href="${r.screenshot}" target="_blank" rel="noopener noreferrer" title="Clique para ampliar"><img src="${r.screenshot}" alt="Screenshot da página suspeita" style="width:100%; margin-top:10px; border:1px solid #ddd; cursor: pointer;" loading="lazy"/></a></div>`;
             }
 
-            DOM.urlResults.innerHTML += `
-                <div class="${cardClass}">
-                    <h4>${r.source}</h4>
-                    ${detailsHtml}
-                </div>
-            `;
+            DOM.urlResults.innerHTML += `<div class="${cardClass}"><h4>${r.source}</h4>${detailsHtml}</div>`;
         });
     },
 
@@ -697,23 +657,9 @@ const Renderers = {
         const cardClass = isHighRisk ? 'result-card unsafe' : 'result-card safe';
         const iconClass = isHighRisk ? 'fas fa-exclamation-triangle' : 'fas fa-check-circle';
 
-        const detailsHtml = `
-            <p><i class="${iconClass}"></i> <strong>Risco:</strong> ${isHighRisk ? 'Alto' : 'Baixo'}</p>
-            <ul class="details-list">
-                <li><strong>Pontuação de Fraude:</strong> ${result.details.fraudScore} / 100</li>
-                <li><strong>País:</strong> ${result.details.countryCode}</li>
-                <li><strong>É Proxy/VPN:</strong> ${result.details.isProxy ? 'Sim' : 'Não'}</li>
-                <li><strong>É Tor:</strong> ${result.details.isTor ? 'Sim' : 'Não'}</li>
-                <li><strong>Abusos Recentes:</strong> ${result.details.recentAbuse ? 'Sim' : 'Não'}</li>
-            </ul>
-        `;
+        const detailsHtml = `<p><i class="${iconClass}"></i> <strong>Risco:</strong> ${isHighRisk ? 'Alto' : 'Baixo'}</p><ul class="details-list"><li><strong>Pontuação de Fraude:</strong> ${result.details.fraudScore} / 100</li><li><strong>País:</strong> ${result.details.countryCode}</li><li><strong>É Proxy/VPN:</strong> ${result.details.isProxy ? 'Sim' : 'Não'}</li><li><strong>É Tor:</strong> ${result.details.isTor ? 'Sim' : 'Não'}</li><li><strong>Abusos Recentes:</strong> ${result.details.recentAbuse ? 'Sim' : 'Não'}</li></ul>`;
 
-        DOM.ipResults.innerHTML += `
-            <div class="${cardClass}">
-                <h4>${result.source}</h4>
-                ${detailsHtml}
-            </div>
-        `;
+        DOM.ipResults.innerHTML += `<div class="${cardClass}"><h4>${result.source}</h4>${detailsHtml}</div>`;
     },
 
     emailResults(data) {
@@ -722,7 +668,6 @@ const Renderers = {
         let finalRisk = 'Baixo';
         let riskReasons = [];
 
-        // Mailboxlayer analysis
         const mb = data.mailboxlayer;
         let mbContent = '';
 
@@ -736,20 +681,11 @@ const Renderers = {
                 riskReasons.push('A verificação SMTP falhou, o e-mail pode não existir.');
             }
 
-            mbContent = `
-                <div class="result-card">
-                    <h5><i class="fas fa-shield-alt"></i> Validação Técnica (Mailboxlayer)</h5>
-                    <p><strong>Formato Válido:</strong> ${mb.format_valid ? 'Sim' : 'Não'}</p>
-                    <p><strong>E-mail Descartável:</strong> ${mb.disposable ? '<span class="risk-high">Sim</span>' : 'Não'}</p>
-                    <p><strong>Verificação SMTP:</strong> ${mb.smtp_check ? 'Bem-sucedida' : '<span class="risk-medium">Falhou</span>'}</p>
-                    <p><strong>Score de Qualidade:</strong> ${mb.score * 100}%</p>
-                </div>
-            `;
+            mbContent = `<div class="result-card"><h5><i class="fas fa-shield-alt"></i> Validação Técnica (Mailboxlayer)</h5><p><strong>Formato Válido:</strong> ${mb.format_valid ? 'Sim' : 'Não'}</p><p><strong>E-mail Descartável:</strong> ${mb.disposable ? '<span class="risk-high">Sim</span>' : 'Não'}</p><p><strong>Verificação SMTP:</strong> ${mb.smtp_check ? 'Bem-sucedida' : '<span class="risk-medium">Falhou</span>'}</p><p><strong>Score de Qualidade:</strong> ${mb.score * 100}%</p></div>`;
         } else {
             mbContent = `<p>Não foi possível obter dados de validação técnica.</p>`;
         }
 
-        // LeakCheck analysis
         const lc = data.leakcheck;
         let lcContent = '';
 
@@ -758,22 +694,9 @@ const Renderers = {
                 if (finalRisk !== 'Alto') finalRisk = 'Médio';
                 riskReasons.push(`Encontrado em ${lc.found} vazamento(s) de dados.`);
 
-                lcContent = `
-                    <div class="result-card">
-                        <h5><i class="fas fa-user-secret"></i> Histórico de Vazamentos (LeakCheck)</h5>
-                        <p class="risk-medium"><strong>Encontrado em ${lc.found} vazamento(s):</strong></p>
-                        <ul class="details-list">
-                            ${lc.sources.map(source => `<li>${source.name} (${source.date})</li>`).join('')}
-                        </ul>
-                    </div>
-                `;
+                lcContent = `<div class="result-card"><h5><i class="fas fa-user-secret"></i> Histórico de Vazamentos (LeakCheck)</h5><p class="risk-medium"><strong>Encontrado em ${lc.found} vazamento(s):</strong></p><ul class="details-list">${lc.sources.map(source => `<li>${source.name} (${source.date})</li>`).join('')}</ul></div>`;
             } else {
-                lcContent = `
-                    <div class="result-card">
-                        <h5><i class="fas fa-user-secret"></i> Histórico de Vazamentos (LeakCheck)</h5>
-                        <p class="risk-low"><strong>Ótimo!</strong> Este e-mail não foi encontrado em vazamentos conhecidos.</p>
-                    </div>
-                `;
+                lcContent = `<div class="result-card"><h5><i class="fas fa-user-secret"></i> Histórico de Vazamentos (LeakCheck)</h5><p class="risk-low"><strong>Ótimo!</strong> Este e-mail não foi encontrado em vazamentos conhecidos.</p></div>`;
             }
         } else if (lc && lc.limit_reached) {
             lcContent = `<p class="error-message">Limite diário da API de verificação de vazamentos foi atingido.</p>`;
@@ -781,18 +704,11 @@ const Renderers = {
             lcContent = `<p>Não foi possível obter dados sobre vazamentos.</p>`;
         }
 
-        // Risk summary
         let riskClass = 'safe';
         if (finalRisk === 'Médio') riskClass = 'medium-risk';
         if (finalRisk === 'Alto') riskClass = 'unsafe';
 
-        const summaryCard = `
-            <div class="result-card ${riskClass}">
-                <h4><i class="fas fa-flag"></i> Resumo do Risco</h4>
-                <p><strong>Nível de Risco Geral:</strong> ${finalRisk}</p>
-                ${riskReasons.length > 0 ? `<ul>${riskReasons.map(r => `<li>${r}</li>`).join('')}</ul>` : '<p>Nenhum indicador de risco significativo encontrado.</p>'}
-            </div>
-        `;
+        const summaryCard = `<div class="result-card ${riskClass}"><h4><i class="fas fa-flag"></i> Resumo do Risco</h4><p><strong>Nível de Risco Geral:</strong> ${finalRisk}</p>${riskReasons.length > 0 ? `<ul>${riskReasons.map(r => `<li>${r}</li>`).join('')}</ul>` : '<p>Nenhum indicador de risco significativo encontrado.</p>'}</div>`;
 
         DOM.emailResults.innerHTML += summaryCard + mbContent + lcContent;
     },
@@ -801,50 +717,18 @@ const Renderers = {
         DOM.documentResults.innerHTML = '';
 
         if (!data.isSafe || !data.details) {
-            const errorHTML = `
-                <div class="result-item high-risk">
-                    <div class="result-header">
-                        <i class="fas fa-times-circle"></i>
-                        <h4>Inválido ou Não Encontrado</h4>
-                    </div>
-                    <div class="result-details">
-                        <p>${data.message || 'A consulta não retornou um resultado válido.'}</p>
-                    </div>
-                </div>
-            `;
+            const errorHTML = `<div class="result-item high-risk"><div class="result-header"><i class="fas fa-times-circle"></i><h4>Inválido ou Não Encontrado</h4></div><div class="result-details"><p>${data.message || 'A consulta não retornou um resultado válido.'}</p></div></div>`;
             DOM.documentResults.innerHTML = errorHTML;
             return;
         }
 
         const details = data.details;
-        let resultHTML = `
-            <div class="result-item safe">
-                <div class="result-header">
-                    <i class="fas fa-check-circle"></i>
-                    <h4>Documento Válido</h4>
-                </div>
-                <div class="result-details">
-                    <p><strong>Fonte da Consulta:</strong> ${data.source || 'N/A'}</p>
-                </div>
-            </div>
-            <div class="result-table-container">
-                <h4><i class="fas fa-building"></i> Dados Cadastrais</h4>
-                <table class="result-table">
-                    <tbody>
-        `;
+        let resultHTML = `<div class="result-item safe"><div class="result-header"><i class="fas fa-check-circle"></i><h4>Documento Válido</h4></div><div class="result-details"><p><strong>Fonte da Consulta:</strong> ${data.source || 'N/A'}</p></div></div><div class="result-table-container"><h4><i class="fas fa-building"></i> Dados Cadastrais</h4><table class="result-table"><tbody>`;
 
-        if (details.razao_social) {
-            resultHTML += `<tr><td>Razão Social</td><td>${details.razao_social}</td></tr>`;
-        }
-        if (details.nome_fantasia) {
-            resultHTML += `<tr><td>Nome Fantasia</td><td>${details.nome_fantasia || 'Não informado'}</td></tr>`;
-        }
-        if (details.cnpj) {
-            resultHTML += `<tr><td>CNPJ</td><td>${details.cnpj}</td></tr>`;
-        }
-        if (details.data_inicio_atividade) {
-            resultHTML += `<tr><td>Início da Atividade</td><td>${details.data_inicio_atividade}</td></tr>`;
-        }
+        if (details.razao_social) resultHTML += `<tr><td>Razão Social</td><td>${details.razao_social}</td></tr>`;
+        if (details.nome_fantasia) resultHTML += `<tr><td>Nome Fantasia</td><td>${details.nome_fantasia || 'Não informado'}</td></tr>`;
+        if (details.cnpj) resultHTML += `<tr><td>CNPJ</td><td>${details.cnpj}</td></tr>`;
+        if (details.data_inicio_atividade) resultHTML += `<tr><td>Início da Atividade</td><td>${details.data_inicio_atividade}</td></tr>`;
         if (details.descricao_situacao_cadastral) {
             const statusClass = details.descricao_situacao_cadastral === 'ATIVA' ? 'status-active' : 'status-inactive';
             resultHTML += `<tr><td>Situação Cadastral</td><td><span class="${statusClass}">${details.descricao_situacao_cadastral}</span></td></tr>`;
@@ -853,15 +737,9 @@ const Renderers = {
         const endereco = `${details.logradouro || ''}, ${details.numero || ''} - ${details.bairro || ''}, ${details.municipio || ''} - ${details.uf || ''}, CEP: ${details.cep || ''}`;
         resultHTML += `<tr><td>Endereço</td><td>${endereco}</td></tr>`;
 
-        if (details.ddd_telefone_1) {
-            resultHTML += `<tr><td>Telefone</td><td>${details.ddd_telefone_1}</td></tr>`;
-        }
+        if (details.ddd_telefone_1) resultHTML += `<tr><td>Telefone</td><td>${details.ddd_telefone_1}</td></tr>`;
 
-        resultHTML += `
-                    </tbody>
-                </table>
-            </div>
-        `;
+        resultHTML += `</tbody></table></div>`;
 
         DOM.documentResults.innerHTML = resultHTML;
     },
@@ -871,53 +749,9 @@ const Renderers = {
         let resultHTML = '';
 
         if (details.isValid) {
-            resultHTML = `
-                <div class="result-item safe">
-                    <div class="result-header">
-                        <i class="fas fa-check-circle"></i>
-                        <h4>Telefone Válido</h4>
-                    </div>
-                </div>
-                <div class="result-table-container">
-                    <h4><i class="fas fa-info-circle"></i> Detalhes do Número</h4>
-                    <table class="result-table">
-                        <tbody>
-                            <tr>
-                                <td>Número Internacional</td>
-                                <td>${details.phoneNumber || 'N/A'}</td>
-                            </tr>
-                            <tr>
-                                <td>Formato Nacional</td>
-                                <td>${details.nationalFormat || 'N/A'}</td>
-                            </tr>
-                            <tr>
-                                <td>País</td>
-                                <td>${details.countryCode || 'N/A'}</td>
-                            </tr>
-                            <tr>
-                                <td>Operadora</td>
-                                <td>${details.carrierName || 'Informação não disponível'}</td>
-                            </tr>
-                            <tr>
-                                <td>Tipo de Linha</td>
-                                <td>${details.lineType || 'Informação não disponível'}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            `;
+            resultHTML = `<div class="result-item safe"><div class="result-header"><i class="fas fa-check-circle"></i><h4>Telefone Válido</h4></div></div><div class="result-table-container"><h4><i class="fas fa-info-circle"></i> Detalhes do Número</h4><table class="result-table"><tbody><tr><td>Número Internacional</td><td>${details.phoneNumber || 'N/A'}</td></tr><tr><td>Formato Nacional</td><td>${details.nationalFormat || 'N/A'}</td></tr><tr><td>País</td><td>${details.countryCode || 'N/A'}</td></tr><tr><td>Operadora</td><td>${details.carrierName || 'Informação não disponível'}</td></tr><tr><td>Tipo de Linha</td><td>${details.lineType || 'Informação não disponível'}</td></tr></tbody></table></div>`;
         } else {
-            resultHTML = `
-                <div class="result-item high-risk">
-                    <div class="result-header">
-                        <i class="fas fa-times-circle"></i>
-                        <h4>Telefone Inválido ou Não Encontrado</h4>
-                    </div>
-                    <div class="result-details">
-                        <p>${data.message || 'A verificação falhou. Verifique o número e o formato.'}</p>
-                    </div>
-                </div>
-            `;
+            resultHTML = `<div class="result-item high-risk"><div class="result-header"><i class="fas fa-times-circle"></i><h4>Telefone Inválido ou Não Encontrado</h4></div><div class="result-details"><p>${data.message || 'A verificação falhou. Verifique o número e o formato.'}</p></div></div>`;
         }
 
         DOM.phoneResults.innerHTML = resultHTML;
@@ -930,17 +764,7 @@ const Renderers = {
         const cardClass = isSafe ? 'result-card safe' : 'result-card unsafe';
         const iconClass = isSafe ? 'fas fa-check-circle' : 'fas fa-exclamation-triangle';
 
-        DOM.fileResults.innerHTML += `
-            <div class="${cardClass}">
-                <h4>${result.source}</h4>
-                <p><i class="${iconClass}"></i> ${result.details}</p>
-                <ul class="file-stats">
-                    <li>Maliciosos: <strong>${result.stats.malicious}</strong></li>
-                    <li>Suspeitos: <strong>${result.stats.suspicious}</strong></li>
-                    <li>Inofensivos: <strong>${result.stats.harmless}</strong></li>
-                </ul>
-            </div>
-        `;
+        DOM.fileResults.innerHTML += `<div class="${cardClass}"><h4>${result.source}</h4><p><i class="${iconClass}"></i> ${result.details}</p><ul class="file-stats"><li>Maliciosos: <strong>${result.stats.malicious}</strong></li><li>Suspeitos: <strong>${result.stats.suspicious}</strong></li><li>Inofensivos: <strong>${result.stats.harmless}</strong></li></ul></div>`;
     }
 };
 
@@ -992,7 +816,6 @@ const Tabs = {
 
         DOM.tabs.forEach(tab => {
             tab.addEventListener('click', () => {
-                // Remove active class from all tabs and contents
                 DOM.tabs.forEach(t => {
                     t.classList.remove('active');
                     t.setAttribute('aria-selected', 'false');
@@ -1003,7 +826,6 @@ const Tabs = {
                     c.setAttribute('hidden', '');
                 });
 
-                // Add active class to clicked tab and corresponding content
                 tab.classList.add('active');
                 tab.setAttribute('aria-selected', 'true');
 
@@ -1025,17 +847,14 @@ const FileHandlers = {
     initialize() {
         if (!DOM.fileDropzone || !DOM.fileInput) return;
 
-        // Click to select
         DOM.fileDropzone.addEventListener('click', () => DOM.fileInput.click());
 
-        // File input change
         DOM.fileInput.addEventListener('change', () => {
             if (DOM.fileInput.files.length) {
                 Utils.updateFileUI(DOM.fileInput.files[0]);
             }
         });
 
-        // Drag & Drop
         DOM.fileDropzone.addEventListener('dragover', (e) => {
             e.preventDefault();
             DOM.fileDropzone.classList.add('drag-over');
@@ -1062,7 +881,6 @@ const FileHandlers = {
 
 const EventListeners = {
     setup() {
-        // Authentication
         DOM.loginButton?.addEventListener('click', () => Modal.open('loginModal'));
         DOM.registerButton?.addEventListener('click', () => Modal.open('registerModal'));
         DOM.logoutButton?.addEventListener('click', () => Auth.logout());
@@ -1070,7 +888,6 @@ const EventListeners = {
         DOM.registerForm?.addEventListener('submit', (e) => Auth.handleRegister(e));
         DOM.loginForm?.addEventListener('submit', (e) => Auth.handleLogin(e));
 
-        // Checks
         DOM.urlCheckBtn?.addEventListener('click', () => Checks.url());
         DOM.ipCheckBtn?.addEventListener('click', () => Checks.ip());
         DOM.emailCheckBtn?.addEventListener('click', () => Checks.email());
@@ -1088,33 +905,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.log('🎯 Initializing FraudGuard Enterprise...');
 
     try {
-        // 1. Initialize DOM cache
         DOM.initialize();
         console.log('✅ DOM elements cached');
 
-        // 2. Initialize visitor fingerprint
         await Fingerprint.initialize();
         console.log('✅ Fingerprinting initialized');
 
-        // 3. Load user state
         if (State.loadUser()) {
             Auth.showLoggedInState(State.user);
             console.log('✅ User session restored');
         }
 
-        // 4. Setup event listeners
         EventListeners.setup();
         console.log('✅ Event listeners registered');
 
-        // 5. Setup modals
         Modal.setupCloseHandlers();
         console.log('✅ Modal handlers configured');
 
-        // 6. Setup tabs
         Tabs.initialize();
         console.log('✅ Tab system initialized');
 
-        // 7. Setup file handlers
         FileHandlers.initialize();
         console.log('✅ File handlers configured');
 
