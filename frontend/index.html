@@ -1,70 +1,145 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" dir="ltr">
 
 <head>
+    <!-- Meta Tags Essenciais -->
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FraudGuard - Advanced Threat Protection</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <!-- SEO & Social Meta -->
+    <title>FraudGuard - Advanced Threat Protection Platform | Enterprise Security</title>
+    <meta name="description"
+        content="Plataforma enterprise de proteção contra fraudes. Análise em tempo real de URLs, IPs, arquivos, documentos e comunicações suspeitas com IA avançada.">
+    <meta name="keywords" content="fraud detection, threat protection, security platform, anti-fraud, cybersecurity">
+    <meta name="author" content="FraudGuard Team">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://fraudguard.vercel.app">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://fraudguard.vercel.app">
+    <meta property="og:title" content="FraudGuard - Advanced Threat Protection">
+    <meta property="og:description" content="Plataforma enterprise de proteção contra fraudes com IA">
+    <meta property="og:image" content="https://fraudguard.vercel.app/og-image.jpg">
+
+    <!-- Twitter Card -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://fraudguard.vercel.app">
+    <meta property="twitter:title" content="FraudGuard - Advanced Threat Protection">
+    <meta property="twitter:description" content="Plataforma enterprise de proteção contra fraudes com IA">
+    <meta property="twitter:image" content="https://fraudguard.vercel.app/twitter-card.jpg">
+
+    <!-- PWA & Mobile -->
+    <meta name="theme-color" content="#0f1419">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="FraudGuard">
+
+    <!-- Performance & Preloading -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="preconnect" href="https://js.hcaptcha.com" crossorigin>
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+
+    <!-- Fonts com display=swap para performance -->
+    <link rel="preload" as="style"
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet"
+        media="print" onload="this.media='all'">
+    <noscript>
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    </noscript>
+
+    <!-- Font Awesome Icons -->
+    <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+        integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer">
+
+    <!-- Main Stylesheet -->
     <link rel="stylesheet" href="style.css">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="alternate icon" href="/favicon.ico">
+
+    <!-- Security Headers -->
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
 </head>
 
 <body>
+    <!-- Skip to main content (Acessibilidade) -->
+    <a href="#main-content" class="skip-link" aria-label="Pular para conteúdo principal">Pular para conteúdo</a>
+
     <!-- SEÇÃO DE AUTENTICAÇÃO -->
-    <div class="auth-section">
+    <nav class="auth-section" role="navigation" aria-label="Navegação de autenticação">
         <div id="authButtons" class="auth-buttons">
-            <button id="login-button" class="btn btn-secondary">Login</button>
-            <button id="register-button" class="btn btn-primary">Registrar</button>
+            <button id="login-button" class="btn btn-secondary" type="button" aria-label="Fazer login">
+                Login
+            </button>
+            <button id="register-button" class="btn btn-primary" type="button" aria-label="Criar nova conta">
+                Registrar
+            </button>
         </div>
-        <div id="userInfo" class="user-info" style="display: none;">
-            <span id="userName"></span>
-            <button id="logout-button" class="btn btn-logout">Logout</button>
+        <div id="userInfo" class="user-info" style="display: none;" aria-live="polite">
+            <span id="userName" aria-label="Nome do usuário"></span>
+            <button id="logout-button" class="btn btn-logout" type="button" aria-label="Sair da conta">
+                Logout
+            </button>
         </div>
-    </div>
+    </nav>
 
     <!-- MODAL DE LOGIN -->
-    <div id="loginModal" class="modal">
+    <div id="loginModal" class="modal" role="dialog" aria-labelledby="login-title" aria-modal="true" aria-hidden="true">
         <div class="modal-content">
-            <button class="close-btn">&times;</button>
-            <h2>Acesse sua Conta</h2>
-            <form id="loginForm">
+            <button class="close-btn" type="button" aria-label="Fechar modal de login">&times;</button>
+            <h2 id="login-title">Acesse sua Conta</h2>
+            <form id="loginForm" novalidate>
                 <div class="form-group">
                     <label for="login-email">Email</label>
-                    <input type="email" id="login-email" name="email" required>
+                    <input type="email" id="login-email" name="email" required autocomplete="email" aria-required="true"
+                        aria-describedby="login-message" placeholder="seu@email.com">
                 </div>
                 <div class="form-group">
                     <label for="login-password">Senha</label>
-                    <input type="password" id="login-password" name="password" required>
+                    <input type="password" id="login-password" name="password" required autocomplete="current-password"
+                        aria-required="true" aria-describedby="login-message" minlength="8" placeholder="••••••••">
                 </div>
-                <div id="login-message" class="message"></div>
+                <div id="login-message" class="message" role="alert" aria-live="assertive"></div>
                 <button type="submit" class="btn btn-primary btn-full">Entrar</button>
             </form>
         </div>
     </div>
 
     <!-- MODAL DE REGISTRO -->
-    <div id="registerModal" class="modal">
+    <div id="registerModal" class="modal" role="dialog" aria-labelledby="register-title" aria-modal="true"
+        aria-hidden="true">
         <div class="modal-content">
-            <button class="close-btn">&times;</button>
-            <h2>Crie sua Conta</h2>
-            <form id="registerForm">
+            <button class="close-btn" type="button" aria-label="Fechar modal de registro">&times;</button>
+            <h2 id="register-title">Crie sua Conta</h2>
+            <form id="registerForm" novalidate>
                 <div class="form-group">
                     <label for="register-name">Nome</label>
-                    <input type="text" id="register-name" name="name" required>
+                    <input type="text" id="register-name" name="name" required autocomplete="name" aria-required="true"
+                        aria-describedby="register-message" placeholder="Seu nome completo">
                 </div>
                 <div class="form-group">
                     <label for="register-email">Email</label>
-                    <input type="email" id="register-email" name="email" required>
+                    <input type="email" id="register-email" name="email" required autocomplete="email"
+                        aria-required="true" aria-describedby="register-message" placeholder="seu@email.com">
                 </div>
                 <div class="form-group">
                     <label for="register-password">Senha</label>
-                    <input type="password" id="register-password" name="password" required>
+                    <input type="password" id="register-password" name="password" required autocomplete="new-password"
+                        aria-required="true" aria-describedby="register-message" minlength="8"
+                        placeholder="Mínimo 8 caracteres">
                 </div>
-                <div class="h-captcha" data-sitekey="95f20e2a-dfa2-44c2-9a52-20328fbc9c26"></div>
-                <div id="register-message" class="message"></div>
+                <div class="h-captcha" data-sitekey="95f20e2a-dfa2-44c2-9a52-20328fbc9c26"
+                    aria-label="Captcha de verificação"></div>
+                <div id="register-message" class="message" role="alert" aria-live="assertive"></div>
                 <button type="submit" class="btn btn-primary btn-full">Criar Conta</button>
             </form>
         </div>
@@ -72,151 +147,205 @@
 
     <!-- CONTEÚDO PRINCIPAL -->
     <div class="container">
-        <header class="main-header">
-            <h1>FraudGuard</h1>
+        <header class="main-header" role="banner">
+            <h1>
+                <span class="visually-hidden">FraudGuard - </span>
+                FraudGuard
+            </h1>
             <p class="subtitle">Advanced Threat Protection</p>
         </header>
 
-        <main class="main-content">
-            <aside class="sidebar">
-                <section class="stats-section">
-                    <h3><i class="fas fa-chart-bar"></i> Estatísticas</h3>
-                    <div id="statsContent">
-                        <div class="stat-item"><span>Verificações Totais:</span><span class="stat-value"
-                                id="total-checks">0</span></div>
-                        <div class="stat-item"><span>Riscos Altos Detectados:</span><span class="stat-value"
-                                id="high-risks">0</span></div>
+        <main id="main-content" class="main-content" role="main">
+            <aside class="sidebar" role="complementary" aria-label="Estatísticas e histórico">
+                <section class="stats-section" aria-labelledby="stats-heading">
+                    <h3 id="stats-heading"><i class="fas fa-chart-bar" aria-hidden="true"></i> Estatísticas</h3>
+                    <div id="statsContent" aria-live="polite">
+                        <div class="stat-item">
+                            <span>Verificações Totais:</span>
+                            <span class="stat-value" id="total-checks" aria-label="Total de verificações">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span>Riscos Altos Detectados:</span>
+                            <span class="stat-value" id="high-risks" aria-label="Riscos altos detectados">0</span>
+                        </div>
                     </div>
                 </section>
-                <section class="history-section" id="historySection" style="display: none;">
-                    <h3><i class="fas fa-history"></i> Histórico Recente</h3>
-                    <div id="historyContent"></div>
+                <section class="history-section" id="historySection" style="display: none;"
+                    aria-labelledby="history-heading">
+                    <h3 id="history-heading"><i class="fas fa-history" aria-hidden="true"></i> Histórico Recente</h3>
+                    <div id="historyContent" aria-live="polite"></div>
                 </section>
             </aside>
 
             <div class="content-area">
-                <div class="tabs">
-                    <div class="tab active" data-tab="url"><i class="fas fa-globe"></i> URL</div>
-                    <div class="tab" data-tab="ip"><i class="fas fa-network-wired"></i> IP</div>
-                    <div class="tab" data-tab="file"><i class="fas fa-file-arrow-up"></i> Arquivo</div>
-                    <div class="tab" data-tab="text"><i class="fas fa-file-alt"></i> Texto</div>
-                    <div class="tab" data-tab="email"><i class="fas fa-envelope"></i> Email</div>
-                    <div class="tab" data-tab="document"><i class="fas fa-id-card"></i> Documento</div>
-                    <!-- =================================================================== -->
-                    <!-- === NOVA ABA DE TELEFONE ADICIONADA AQUI === -->
-                    <!-- =================================================================== -->
-                    <div class="tab" data-tab="phone"><i class="fas fa-phone"></i> Telefone</div>
+                <div class="tabs" role="tablist" aria-label="Tipos de verificação">
+                    <button class="tab active" role="tab" data-tab="url" aria-selected="true" aria-controls="tab-url"
+                        id="tab-btn-url">
+                        <i class="fas fa-globe" aria-hidden="true"></i> URL
+                    </button>
+                    <button class="tab" role="tab" data-tab="ip" aria-selected="false" aria-controls="tab-ip"
+                        id="tab-btn-ip">
+                        <i class="fas fa-network-wired" aria-hidden="true"></i> IP
+                    </button>
+                    <button class="tab" role="tab" data-tab="file" aria-selected="false" aria-controls="tab-file"
+                        id="tab-btn-file">
+                        <i class="fas fa-file-arrow-up" aria-hidden="true"></i> Arquivo
+                    </button>
+                    <button class="tab" role="tab" data-tab="text" aria-selected="false" aria-controls="tab-text"
+                        id="tab-btn-text">
+                        <i class="fas fa-file-alt" aria-hidden="true"></i> Texto
+                    </button>
+                    <button class="tab" role="tab" data-tab="email" aria-selected="false" aria-controls="tab-email"
+                        id="tab-btn-email">
+                        <i class="fas fa-envelope" aria-hidden="true"></i> Email
+                    </button>
+                    <button class="tab" role="tab" data-tab="document" aria-selected="false"
+                        aria-controls="tab-document" id="tab-btn-document">
+                        <i class="fas fa-id-card" aria-hidden="true"></i> Documento
+                    </button>
+                    <button class="tab" role="tab" data-tab="phone" aria-selected="false" aria-controls="tab-phone"
+                        id="tab-btn-phone">
+                        <i class="fas fa-phone" aria-hidden="true"></i> Telefone
+                    </button>
                 </div>
 
-                <div id="tab-url" class="tab-content active">
-                    <div class="form-section">
+                <!-- Tab URL -->
+                <section id="tab-url" class="tab-content active" role="tabpanel" aria-labelledby="tab-btn-url">
+                    <form class="form-section" onsubmit="return false;">
                         <div class="form-group">
                             <label for="url-input">Analisar URL</label>
-                            <input type="text" id="url-input" placeholder="https://exemplo.com">
+                            <input type="url" id="url-input" placeholder="https://exemplo.com"
+                                aria-describedby="url-results" autocomplete="url">
                         </div>
-                        <button id="url-check-btn" class="btn btn-primary"><i class="fas fa-search"></i> Verificar
-                            URL</button>
+                        <button id="url-check-btn" class="btn btn-primary" type="button">
+                            <i class="fas fa-search" aria-hidden="true"></i> Verificar URL
+                        </button>
+                    </form>
+                    <div id="url-results" class="results-area" role="region" aria-live="polite" aria-atomic="true">
                     </div>
-                    <div id="url-results" class="results-area"></div>
-                </div>
+                </section>
 
-                <div id="tab-ip" class="tab-content">
-                    <div class="form-section">
+                <!-- Tab IP -->
+                <section id="tab-ip" class="tab-content" role="tabpanel" aria-labelledby="tab-btn-ip" hidden>
+                    <form class="form-section" onsubmit="return false;">
                         <div class="form-group">
                             <label for="ip-input">Analisar Endereço de IP</label>
-                            <input type="text" id="ip-input" placeholder="Digite o endereço de IP (ex: 8.8.8.8  )">
+                            <input type="text" id="ip-input" placeholder="Digite o endereço de IP (ex: 8.8.8.8)"
+                                pattern="^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"
+                                aria-describedby="ip-results">
                         </div>
-                        <button id="ip-check-btn" class="btn btn-primary"><i class="fas fa-search"></i> Verificar
-                            IP</button>
-                    </div>
-                    <div id="ip-results" class="results-area"></div>
-                </div>
+                        <button id="ip-check-btn" class="btn btn-primary" type="button">
+                            <i class="fas fa-search" aria-hidden="true"></i> Verificar IP
+                        </button>
+                    </form>
+                    <div id="ip-results" class="results-area" role="region" aria-live="polite" aria-atomic="true"></div>
+                </section>
 
-                <div id="tab-file" class="tab-content">
-                    <div class="form-section">
+                <!-- Tab File -->
+                <section id="tab-file" class="tab-content" role="tabpanel" aria-labelledby="tab-btn-file" hidden>
+                    <form class="form-section" onsubmit="return false;">
                         <label>Analisar Arquivo</label>
-                        <div class="file-upload" id="file-dropzone">
-                            <i class="fas fa-cloud-upload-alt"></i>
+                        <div class="file-upload" id="file-dropzone" tabindex="0" role="button"
+                            aria-label="Área de upload de arquivo">
+                            <i class="fas fa-cloud-upload-alt" aria-hidden="true"></i>
                             <p>Arraste e solte um arquivo aqui, ou clique para selecionar</p>
-                            <span id="file-name"></span>
+                            <span id="file-name" aria-live="polite"></span>
                         </div>
-                        <input type="file" id="file-input" style="display: none;">
-                        <button class="btn btn-primary" id="file-check-btn" disabled><i class="fas fa-search"></i>
-                            Verificar Arquivo</button>
+                        <input type="file" id="file-input" style="display: none;"
+                            accept=".pdf,.doc,.docx,.xls,.xlsx,.zip,.exe" aria-describedby="file-results">
+                        <button class="btn btn-primary" id="file-check-btn" type="button" disabled aria-disabled="true">
+                            <i class="fas fa-search" aria-hidden="true"></i> Verificar Arquivo
+                        </button>
+                    </form>
+                    <div id="file-results" class="results-area" role="region" aria-live="polite" aria-atomic="true">
                     </div>
-                    <div id="file-results" class="results-area"></div>
-                </div>
+                </section>
 
-                <div id="tab-text" class="tab-content">
-                    <div class="form-section">
+                <!-- Tab Text -->
+                <section id="tab-text" class="tab-content" role="tabpanel" aria-labelledby="tab-btn-text" hidden>
+                    <form class="form-section" onsubmit="return false;">
                         <div class="form-group">
                             <label for="text-input">Analisar Texto</label>
                             <textarea id="text-input" rows="5"
-                                placeholder="Cole uma mensagem de email, SMS ou qualquer texto suspeito..."></textarea>
+                                placeholder="Cole uma mensagem de email, SMS ou qualquer texto suspeito..."
+                                aria-describedby="text-results"></textarea>
                         </div>
-                        <button id="text-check-btn" class="btn btn-primary"><i class="fas fa-search"></i> Analisar
-                            Texto</button>
+                        <button id="text-check-btn" class="btn btn-primary" type="button">
+                            <i class="fas fa-search" aria-hidden="true"></i> Analisar Texto
+                        </button>
+                    </form>
+                    <div id="text-results" class="results-area" role="region" aria-live="polite" aria-atomic="true">
                     </div>
-                    <div id="text-results" class="results-area"></div>
-                </div>
+                </section>
 
-                <div id="tab-email" class="tab-content">
-                    <div class="form-section">
+                <!-- Tab Email -->
+                <section id="tab-email" class="tab-content" role="tabpanel" aria-labelledby="tab-btn-email" hidden>
+                    <form class="form-section" onsubmit="return false;">
                         <div class="form-group">
                             <label for="email-input">Analisar Endereço de E-mail</label>
-                            <input type="email" id="email-input" placeholder="Digite o endereço de e-mail para análise">
+                            <input type="email" id="email-input" placeholder="Digite o endereço de e-mail para análise"
+                                autocomplete="email" aria-describedby="email-results">
                         </div>
-                        <button id="email-check-btn" class="btn btn-primary"><i class="fas fa-search"></i> Verificar
-                            E-mail</button>
+                        <button id="email-check-btn" class="btn btn-primary" type="button">
+                            <i class="fas fa-search" aria-hidden="true"></i> Verificar E-mail
+                        </button>
+                    </form>
+                    <div id="email-results" class="results-area" role="region" aria-live="polite" aria-atomic="true">
                     </div>
-                    <div id="email-results" class="results-area"></div>
-                </div>
+                </section>
 
-                <div id="tab-document" class="tab-content">
-                    <div class="form-section">
+                <!-- Tab Document -->
+                <section id="tab-document" class="tab-content" role="tabpanel" aria-labelledby="tab-btn-document"
+                    hidden>
+                    <form class="form-section" onsubmit="return false;">
                         <div class="form-group">
                             <label for="document-input">Analisar CPF ou CNPJ</label>
-                            <input type="text" id="document-input" placeholder="Digite o CPF ou CNPJ (apenas números)">
+                            <input type="text" id="document-input" placeholder="Digite o CPF ou CNPJ (apenas números)"
+                                pattern="[0-9]{11,14}" inputmode="numeric" aria-describedby="document-results">
                         </div>
-                        <button id="document-check-btn" class="btn btn-primary"><i class="fas fa-search"></i> Verificar
-                            Documento</button>
+                        <button id="document-check-btn" class="btn btn-primary" type="button">
+                            <i class="fas fa-search" aria-hidden="true"></i> Verificar Documento
+                        </button>
+                    </form>
+                    <div id="document-results" class="results-area" role="region" aria-live="polite" aria-atomic="true">
                     </div>
-                    <div id="document-results" class="results-area"></div>
-                </div>
+                </section>
 
-                <!-- =================================================================== -->
-                <!-- === NOVO PAINEL DE CONTEÚDO PARA TELEFONE ADICIONADO AQUI === -->
-                <!-- =================================================================== -->
-                <div id="tab-phone" class="tab-content">
-                    <div class="form-section">
+                <!-- Tab Phone -->
+                <section id="tab-phone" class="tab-content" role="tabpanel" aria-labelledby="tab-btn-phone" hidden>
+                    <form class="form-section" onsubmit="return false;">
                         <div class="form-group">
                             <label for="phone-input">Analisar Número de Telefone</label>
-                            <input type="tel" id="phone-input" placeholder="Ex: +5511999998888">
-                            <small style="color: var(--text-muted); margin-top: 5px; display: block;">
+                            <input type="tel" id="phone-input" placeholder="Ex: +5511999998888"
+                                pattern="^\+?[1-9]\d{1,14}$" autocomplete="tel"
+                                aria-describedby="phone-hint phone-results">
+                            <small id="phone-hint" style="color: var(--text-muted); margin-top: 5px; display: block;">
                                 Use o formato internacional E.164 (código do país + código de área + número).
                             </small>
                         </div>
-                        <button id="phone-check-btn" class="btn btn-primary">
-                            <i class="fas fa-search"></i> Verificar Telefone
+                        <button id="phone-check-btn" class="btn btn-primary" type="button">
+                            <i class="fas fa-search" aria-hidden="true"></i> Verificar Telefone
                         </button>
+                    </form>
+                    <div id="phone-results" class="results-area" role="region" aria-live="polite" aria-atomic="true">
                     </div>
-                    <div id="phone-results" class="results-area"></div>
-                </div>
+                </section>
 
             </div>
         </main>
     </div>
 
-    <!-- =================================================================== -->
-    <!-- === SCRIPTS EXTERNOS === -->
-    <!-- =================================================================== -->
+    <!-- Scripts com loading otimizado -->
     <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@fingerprintjs/fingerprintjs@3/dist/fp.min.js" async defer></script>
+    <script src="script.js" defer></script>
 
-    <!-- SCRIPT DO FINGERPRINTJS ADICIONADO AQUI -->
-    <script src="https://cdn.jsdelivr.net/npm/@fingerprintjs/fingerprintjs@3/dist/fp.min.js"></script>
-
-    <!-- SEU SCRIPT PRINCIPAL (DEVE SER O ÚLTIMO   ) -->
-    <script src="script.js"></script>
+    <!-- Fallback para no-js -->
+    <noscript>
+        <div style="padding: 20px; background: #ff6b6b; color: white; text-align: center;">
+            Por favor, ative o JavaScript no seu navegador para usar o FraudGuard.
+        </div>
+    </noscript>
 </body>
 
 </html>
