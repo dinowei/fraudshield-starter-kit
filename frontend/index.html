@@ -71,7 +71,7 @@
 </head>
 
 <body>
-    <!-- Skip to main content (Acessibilidade) -->
+    <!-- Skip to main content (Acessibilidade ) -->
     <a href="#main-content" class="skip-link" aria-label="Pular para conteúdo principal">Pular para conteúdo</a>
 
     <!-- SEÇÃO DE AUTENTICAÇÃO -->
@@ -137,13 +137,17 @@
                         aria-required="true" aria-describedby="register-message" minlength="8"
                         placeholder="Mínimo 8 caracteres">
                 </div>
-                <div class="h-captcha" data-sitekey="1f1e109c-efba-4d78-9be4-0852c40453ec"></div>
-                aria-label="Captcha de verificação">
+
+                <!-- =================================================================== -->
+                <!-- === LINHA CORRIGIDA DO HCAPTCHA === -->
+                <!-- =================================================================== -->
+                <div class="h-captcha" data-sitekey="1f1e109c-efba-4d78-9be4-0852c40453ec"
+                    aria-label="Captcha de verificação"></div>
+
+                <div id="register-message" class="message" role="alert" aria-live="assertive"></div>
+                <button type="submit" class="btn btn-primary btn-full">Criar Conta</button>
+            </form>
         </div>
-        <div id="register-message" class="message" role="alert" aria-live="assertive"></div>
-        <button type="submit" class="btn btn-primary btn-full">Criar Conta</button>
-        </form>
-    </div>
     </div>
 
     <!-- CONTEÚDO PRINCIPAL -->
@@ -210,7 +214,8 @@
                     </button>
                 </div>
 
-                <!-- Tab URL -->
+                <!-- Abas de conteúdo... (o resto do arquivo está correto) -->
+                <!-- ... -->
                 <section id="tab-url" class="tab-content active" role="tabpanel" aria-labelledby="tab-btn-url">
                     <form class="form-section" onsubmit="return false;">
                         <div class="form-group">
@@ -226,12 +231,11 @@
                     </div>
                 </section>
 
-                <!-- Tab IP -->
                 <section id="tab-ip" class="tab-content" role="tabpanel" aria-labelledby="tab-btn-ip" hidden>
                     <form class="form-section" onsubmit="return false;">
                         <div class="form-group">
                             <label for="ip-input">Analisar Endereço de IP</label>
-                            <input type="text" id="ip-input" placeholder="Digite o endereço de IP (ex: 8.8.8.8)"
+                            <input type="text" id="ip-input" placeholder="Digite o endereço de IP (ex: 8.8.8.8 )"
                                 pattern="^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"
                                 aria-describedby="ip-results">
                         </div>
@@ -242,7 +246,6 @@
                     <div id="ip-results" class="results-area" role="region" aria-live="polite" aria-atomic="true"></div>
                 </section>
 
-                <!-- Tab File -->
                 <section id="tab-file" class="tab-content" role="tabpanel" aria-labelledby="tab-btn-file" hidden>
                     <form class="form-section" onsubmit="return false;">
                         <label>Analisar Arquivo</label>
@@ -262,7 +265,6 @@
                     </div>
                 </section>
 
-                <!-- Tab Text -->
                 <section id="tab-text" class="tab-content" role="tabpanel" aria-labelledby="tab-btn-text" hidden>
                     <form class="form-section" onsubmit="return false;">
                         <div class="form-group">
@@ -279,7 +281,6 @@
                     </div>
                 </section>
 
-                <!-- Tab Email -->
                 <section id="tab-email" class="tab-content" role="tabpanel" aria-labelledby="tab-btn-email" hidden>
                     <form class="form-section" onsubmit="return false;">
                         <div class="form-group">
@@ -295,7 +296,6 @@
                     </div>
                 </section>
 
-                <!-- Tab Document -->
                 <section id="tab-document" class="tab-content" role="tabpanel" aria-labelledby="tab-btn-document"
                     hidden>
                     <form class="form-section" onsubmit="return false;">
@@ -312,7 +312,6 @@
                     </div>
                 </section>
 
-                <!-- Tab Phone -->
                 <section id="tab-phone" class="tab-content" role="tabpanel" aria-labelledby="tab-btn-phone" hidden>
                     <form class="form-section" onsubmit="return false;">
                         <div class="form-group">
@@ -331,7 +330,6 @@
                     <div id="phone-results" class="results-area" role="region" aria-live="polite" aria-atomic="true">
                     </div>
                 </section>
-
             </div>
         </main>
     </div>
