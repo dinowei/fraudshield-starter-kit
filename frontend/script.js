@@ -31,7 +31,7 @@ const CONFIG = {
     // Request timeouts
     TIMEOUT: {
         SHORT: 5000,
-        MEDIUM: 10000,
+        MEDIUM: 60000,
         LONG: 30000
     },
 
