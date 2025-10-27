@@ -13,8 +13,7 @@
 
 const CONFIG = {
     // Automatic backend URL detection
-    API_BASE_URL: (() => {
-        const hostname = window.location.hostname;
+    API_BASE_URL: 'https://fraudguard-api-v2.onrender.com',
 
 
         // Production (Vercel)
